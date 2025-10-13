@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+const (
+	EffectFire       = "5104841245755180586" // 🔥
+	EffectThumbsUp   = "5107584321108051014" // 👍
+	EffectThumbsDown = "5104858069142078462" // 👎
+	EffectHeart      = "5159385139981059251" // ❤️
+	EffectParty      = "5046509860389126442" // 🎉
+	EffectPoop       = "5046589136895476101" // 💩
+)
+
 // APIResponse is a response from the Telegram API with the result
 // stored raw.
 type APIResponse struct {
@@ -431,6 +440,10 @@ type Message struct {
 	//
 	// optional
 	MediaGroupID string `json:"media_group_id,omitempty"`
+	// EffectID is the unique identifier of the message effect added to the message;
+	//
+	// optional
+	EffectID string `json:"effect_id,omitempty"`
 	// AuthorSignature is the signature of the post author for messages in channels;
 	//
 	// optional
