@@ -719,6 +719,47 @@ func (bot *BotAPI) GetMyDefaultAdministratorRights(config GetMyDefaultAdministra
 	return rights, err
 }
 
+// GetManagedBotToken returns the token of a managed bot.
+func (bot *BotAPI) GetManagedBotToken(config GetManagedBotTokenConfig) (string, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return "", err
+	}
+
+	var token string
+	err = json.Unmarshal(resp.Result, &token)
+
+	return token, err
+}
+
+// ReplaceManagedBotToken revokes the current token of a managed bot
+// and generates a new one. Returns the new token.
+func (bot *BotAPI) ReplaceManagedBotToken(config ReplaceManagedBotTokenConfig) (string, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return "", err
+	}
+
+	var token string
+	err = json.Unmarshal(resp.Result, &token)
+
+	return token, err
+}
+
+// SavePreparedKeyboardButton stores a keyboard button that can be used
+// by a user within a Mini App. Returns a PreparedKeyboardButton.
+func (bot *BotAPI) SavePreparedKeyboardButton(config SavePreparedKeyboardButtonConfig) (PreparedKeyboardButton, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return PreparedKeyboardButton{}, err
+	}
+
+	var button PreparedKeyboardButton
+	err = json.Unmarshal(resp.Result, &button)
+
+	return button, err
+}
+
 // EscapeText takes an input text and escape Telegram markup symbols.
 // In this way we can send a text without being afraid of having to escape the characters manually.
 // Note that you don't have to include the formatting style in the input text, or it will be escaped too.

@@ -92,6 +92,10 @@ const (
 	// UpdateTypeChatMember is when the bot must be an administrator in the chat and must explicitly specify
 	// this update in the list of allowed_updates to receive these updates.
 	UpdateTypeChatMember = "chat_member"
+
+	// UpdateTypeManagedBot is when a new bot was created to be managed by the bot,
+	// or token or owner of a managed bot was changed.
+	UpdateTypeManagedBot = "managed_bot"
 )
 
 // Library errors
@@ -2425,6 +2429,64 @@ func (config GetMyDefaultAdministratorRightsConfig) params() (Params, error) {
 // media and "attach://file-%d-thumb" for thumbnails.
 //
 // It is expected to be used in conjunction with prepareInputMediaFile.
+// GetManagedBotTokenConfig contains the parameters for the getManagedBotToken method.
+type GetManagedBotTokenConfig struct {
+	// UserID is the user identifier of the managed bot whose token will be returned.
+	UserID int64
+}
+
+func (GetManagedBotTokenConfig) method() string {
+	return "getManagedBotToken"
+}
+
+func (config GetManagedBotTokenConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+
+	return params, nil
+}
+
+// ReplaceManagedBotTokenConfig contains the parameters for the replaceManagedBotToken method.
+type ReplaceManagedBotTokenConfig struct {
+	// UserID is the user identifier of the managed bot whose token will be replaced.
+	UserID int64
+}
+
+func (ReplaceManagedBotTokenConfig) method() string {
+	return "replaceManagedBotToken"
+}
+
+func (config ReplaceManagedBotTokenConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+
+	return params, nil
+}
+
+// SavePreparedKeyboardButtonConfig contains the parameters for the savePreparedKeyboardButton method.
+type SavePreparedKeyboardButtonConfig struct {
+	// UserID is the unique identifier of the target user that can use the button.
+	UserID int64
+	// Button is a KeyboardButton describing the button to be saved.
+	// The button must be of the type request_users, request_chat, or request_managed_bot.
+	Button KeyboardButton
+}
+
+func (SavePreparedKeyboardButtonConfig) method() string {
+	return "savePreparedKeyboardButton"
+}
+
+func (config SavePreparedKeyboardButtonConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	err := params.AddInterface("button", config.Button)
+
+	return params, err
+}
+
 func prepareInputMediaParam(inputMedia interface{}, idx int) interface{} {
 	switch m := inputMedia.(type) {
 	case InputMediaPhoto:

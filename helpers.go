@@ -985,3 +985,12 @@ func ValidateWebAppData(token, telegramInitData string) (bool, error) {
 
 	return true, nil
 }
+
+// todo add comment
+func NewManagedBotLink(managerUsername, suggestedUsername, suggestedName string) string {
+	link := fmt.Sprintf("https://t.me/newbot/%s/%s", managerUsername, suggestedUsername)
+	if suggestedName != "" {
+		link += "?name=" + url.QueryEscape(suggestedName)
+	}
+	return link
+}

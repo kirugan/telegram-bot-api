@@ -123,6 +123,11 @@ type Update struct {
 	//
 	// optional
 	ChatJoinRequest *ChatJoinRequest `json:"chat_join_request,omitempty"`
+	// ManagedBot is a new bot was created to be managed by the bot,
+	// or token or owner of a managed bot was changed.
+	//
+	// optional
+	ManagedBot *ManagedBotUpdated `json:"managed_bot,omitempty"`
 }
 
 // SentFrom returns the user who sent an update. Can be nil, if Telegram did not provide information
@@ -143,6 +148,8 @@ func (u *Update) SentFrom() *User {
 		return u.ShippingQuery.From
 	case u.PreCheckoutQuery != nil:
 		return u.PreCheckoutQuery.From
+	case u.ManagedBot != nil:
+		return &u.ManagedBot.User
 	default:
 		return nil
 	}
@@ -226,6 +233,11 @@ type User struct {
 	//
 	// optional
 	SupportsInlineQueries bool `json:"supports_inline_queries,omitempty"`
+	// CanManageBots is true, if other bots can be created to be controlled by the bot.
+	// Returned only in getMe.
+	//
+	// optional
+	CanManageBots bool `json:"can_manage_bots,omitempty"`
 }
 
 // String displays a simple text version of a user.
@@ -642,6 +654,11 @@ type Message struct {
 	//
 	// optional
 	WebAppData *WebAppData `json:"web_app_data,omitempty"`
+	// ManagedBotCreated is a service message: user created a bot
+	// that will be managed by the current bot.
+	//
+	// optional
+	ManagedBotCreated *ManagedBotCreated `json:"managed_bot_created,omitempty"`
 	// ReplyMarkup is the Inline keyboard attached to the message.
 	// login_url buttons are represented as ordinary url buttons.
 	//
@@ -1227,6 +1244,31 @@ type VideoChatParticipantsInvited struct {
 	Users []User `json:"users,omitempty"`
 }
 
+// ManagedBotCreated contains information about the bot that was created
+// to be managed by the current bot.
+type ManagedBotCreated struct {
+	// Bot is information about the bot. The bot's token can be fetched
+	// using the method getManagedBotToken.
+	Bot User `json:"bot"`
+}
+
+// ManagedBotUpdated contains information about the creation, token update,
+// or owner update of a bot that is managed by the current bot.
+type ManagedBotUpdated struct {
+	// User that created the bot.
+	User User `json:"user"`
+	// Bot is information about the bot. Token of the bot can be fetched
+	// using the method getManagedBotToken.
+	Bot User `json:"bot"`
+}
+
+// PreparedKeyboardButton describes a keyboard button to be used
+// by a user of a Mini App.
+type PreparedKeyboardButton struct {
+	// ID is the unique identifier of the keyboard button.
+	ID string `json:"id"`
+}
+
 // UserProfilePhotos contains a set of user profile photos.
 type UserProfilePhotos struct {
 	// TotalCount total number of profile pictures the target user has
@@ -1336,6 +1378,29 @@ type KeyboardButton struct {
 	//
 	// optional
 	WebApp *WebAppInfo `json:"web_app,omitempty"`
+	// RequestManagedBot if specified, pressing the button will ask the user
+	// to create and share a bot that will be managed by the current bot.
+	// Available in private chats only.
+	//
+	// optional
+	RequestManagedBot *KeyboardButtonRequestManagedBot `json:”request_managed_bot,omitempty”`
+}
+
+// KeyboardButtonRequestManagedBot defines the parameters for the creation
+// of a managed bot. Information about the created bot will be shared with the
+// bot using the update managed_bot and a Message with the field managed_bot_created.
+type KeyboardButtonRequestManagedBot struct {
+	// RequestID is a signed 32-bit identifier of the request.
+	// Must be unique within the message.
+	RequestID int `json:"request_id"`
+	// SuggestedName is the suggested name for the bot.
+	//
+	// optional
+	SuggestedName string `json:"suggested_name,omitempty"`
+	// SuggestedUsername is the suggested username for the bot.
+	//
+	// optional
+	SuggestedUsername string `json:"suggested_username,omitempty"`
 }
 
 // KeyboardButtonPollType represents type of poll, which is allowed to
