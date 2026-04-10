@@ -2260,6 +2260,26 @@ func (config UnhideGeneralForumTopicConfig) params() (Params, error) {
 	return params, nil
 }
 
+// UnpinAllGeneralForumTopicMessagesConfig clears the list of pinned messages
+// in the General forum topic. The bot must be an administrator in the chat
+// with the can_pin_messages administrator right in the supergroup.
+type UnpinAllGeneralForumTopicMessagesConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+}
+
+func (config UnpinAllGeneralForumTopicMessagesConfig) method() string {
+	return "unpinAllGeneralForumTopicMessages"
+}
+
+func (config UnpinAllGeneralForumTopicMessagesConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+
+	return params, nil
+}
+
 // SetChatPhotoConfig allows you to set a group, supergroup, or channel's photo.
 type SetChatPhotoConfig struct {
 	BaseFile

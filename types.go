@@ -300,6 +300,12 @@ type Chat struct {
 	//
 	// optional
 	EmojiStatusCustomEmojiID string `json:"emoji_status_custom_emoji_id,omitempty"`
+	// EmojiStatusExpirationDate is the expiration date of the emoji status of
+	// the other party in a private chat in Unix time, if any. Returned only in
+	// getChat.
+	//
+	// optional
+	EmojiStatusExpirationDate int64 `json:"emoji_status_expiration_date,omitempty"`
 	// HasHiddenMembers is true, if non-administrators can only see bots and
 	// administrators in the chat. Returned only in getChat.
 	//
@@ -557,6 +563,10 @@ type Message struct {
 	//
 	// optional
 	VideoNote *VideoNote `json:"video_note,omitempty"`
+	// Story is a forwarded story.
+	//
+	// optional
+	Story *Story `json:"story,omitempty"`
 	// Voice message is a voice message, information about the file;
 	//
 	// optional
@@ -1178,7 +1188,14 @@ type PollOption struct {
 type PollAnswer struct {
 	// PollID is the unique poll identifier
 	PollID string `json:"poll_id"`
-	// User who changed the answer to the poll
+	// VoterChat is the chat that changed the answer to the poll, if the voter
+	// is anonymous.
+	//
+	// optional
+	VoterChat *Chat `json:"voter_chat,omitempty"`
+	// User who changed the answer to the poll, if the voter isn't anonymous.
+	// For backward compatibility, the field user in such objects will contain
+	// the user 136817688 (@Channel_Bot).
 	User User `json:"user"`
 	// OptionIDs is the 0-based identifiers of poll options chosen by the user.
 	// May be empty if user retracted vote.
@@ -2196,6 +2213,9 @@ type ChatPermissions struct {
 	// optional
 	CanManageTopics bool `json:"can_manage_topics,omitempty"`
 }
+
+// Story represents a forwarded story. Currently holds no information.
+type Story struct{}
 
 // ChatLocation represents a location to which a chat is connected.
 type ChatLocation struct {
