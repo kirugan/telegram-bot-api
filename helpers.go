@@ -17,8 +17,7 @@ import (
 func NewMessage(chatID int64, text string) MessageConfig {
 	return MessageConfig{
 		BaseChat: BaseChat{
-			ChatID:           chatID,
-			ReplyToMessageID: 0,
+			ChatID: chatID,
 		},
 		Text:                  text,
 		DisableWebPagePreview: false,

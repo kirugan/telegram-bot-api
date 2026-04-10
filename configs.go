@@ -275,29 +275,31 @@ func (CloseConfig) params() (Params, error) {
 
 // BaseChat is base type for all chat config types.
 type BaseChat struct {
-	ChatID                   int64 // required
-	ChannelUsername          string
-	MessageThreadID          int
-	MessageEffectID          string
-	ProtectContent           bool
-	ReplyToMessageID         int
-	ReplyMarkup              interface{}
-	DisableNotification      bool
-	AllowSendingWithoutReply bool
+	ChatID              int64 // required
+	ChannelUsername     string
+	MessageThreadID     int
+	MessageEffectID     string
+	ProtectContent      bool
+	ReplyParameters     *ReplyParameters
+	ReplyMarkup         interface{}
+	DisableNotification bool
 }
 
 func (chat *BaseChat) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", chat.ChatID, chat.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", chat.ChatID, chat.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_thread_id", chat.MessageThreadID)
 	params.AddNonEmpty("message_effect_id", chat.MessageEffectID)
-	params.AddNonZero("reply_to_message_id", chat.ReplyToMessageID)
 	params.AddBool("disable_notification", chat.DisableNotification)
-	params.AddBool("allow_sending_without_reply", chat.AllowSendingWithoutReply)
 	params.AddBool("protect_content", chat.ProtectContent)
 
-	err := params.AddInterface("reply_markup", chat.ReplyMarkup)
+	if err := params.AddAny("reply_parameters", chat.ReplyParameters); err != nil {
+		return params, err
+	}
+	err := params.AddAny("reply_markup", chat.ReplyMarkup)
 
 	return params, err
 }
@@ -2788,7 +2790,7 @@ type MediaGroupConfig struct {
 
 	Media               []interface{}
 	DisableNotification bool
-	ReplyToMessageID    int
+	ReplyParameters     *ReplyParameters
 }
 
 func (config MediaGroupConfig) method() string {
@@ -2798,12 +2800,16 @@ func (config MediaGroupConfig) method() string {
 func (config MediaGroupConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
 	params.AddBool("disable_notification", config.DisableNotification)
-	params.AddNonZero("reply_to_message_id", config.ReplyToMessageID)
+	if err := params.AddAny("reply_parameters", config.ReplyParameters); err != nil {
+		return params, err
+	}
 
-	err := params.AddInterface("media", prepareInputMediaForParams(config.Media))
+	err := params.AddAny("media", prepareInputMediaForParams(config.Media))
 
 	return params, err
 }

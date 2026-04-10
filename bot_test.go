@@ -84,7 +84,7 @@ func TestSendWithMessageReply(t *testing.T) {
 	bot, _ := getBot(t)
 
 	msg := NewMessage(ChatID, "A test message from the test library in telegram-bot-api")
-	msg.ReplyToMessageID = ReplyToMessageID
+	msg.ReplyParameters = &ReplyParameters{MessageID: ReplyToMessageID}
 	_, err := bot.Send(msg)
 
 	if err != nil {
@@ -169,7 +169,7 @@ func TestSendWithNewPhotoReply(t *testing.T) {
 	bot, _ := getBot(t)
 
 	msg := NewPhoto(ChatID, FilePath("tests/image.jpg"))
-	msg.ReplyToMessageID = ReplyToMessageID
+	msg.ReplyParameters = &ReplyParameters{MessageID: ReplyToMessageID}
 
 	_, err := bot.Send(msg)
 
@@ -699,7 +699,7 @@ func ExampleNewBotAPI() {
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		msg := NewMessage(update.Message.Chat.ID, update.Message.Text)
-		msg.ReplyToMessageID = update.Message.MessageID
+		msg.ReplyParameters = &ReplyParameters{MessageID: update.Message.MessageID}
 
 		bot.Send(msg)
 	}

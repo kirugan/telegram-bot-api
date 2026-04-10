@@ -515,6 +515,15 @@ type Message struct {
 	//
 	// optional
 	ReplyToMessage *Message `json:"reply_to_message,omitempty"`
+	// ExternalReply is information about the message that is being replied to,
+	// which may come from another chat or forum topic.
+	//
+	// optional
+	ExternalReply *ExternalReplyInfo `json:"external_reply,omitempty"`
+	// Quote is the part of the message that is actually quoted in the reply.
+	//
+	// optional
+	Quote *TextQuote `json:"quote,omitempty"`
 	// ViaBot through which the message was sent;
 	//
 	// optional
@@ -2323,6 +2332,153 @@ type MessageReactionCountUpdated struct {
 	Date int `json:"date"`
 	// Reactions is the list of reactions that are present on the message.
 	Reactions []ReactionCount `json:"reactions"`
+}
+
+// TextQuote contains information about the quoted part of a message that is
+// replied to by the given message.
+type TextQuote struct {
+	// Text of the quoted part of the message that is replied to by the given
+	// message.
+	Text string `json:"text"`
+	// Entities are special entities that appear in the quote. Currently, only
+	// bold, italic, underline, strikethrough, spoiler, and custom_emoji
+	// entities are kept in quotes.
+	//
+	// optional
+	Entities []MessageEntity `json:"entities,omitempty"`
+	// Position is the approximate quote position in the original message in
+	// UTF-16 code units as specified by the sender.
+	Position int `json:"position"`
+	// IsManual is true, if the quote was chosen manually by the message
+	// sender. Otherwise, the quote was added automatically by the server.
+	//
+	// optional
+	IsManual bool `json:"is_manual,omitempty"`
+}
+
+// ExternalReplyInfo contains information about a message that is being replied
+// to, which may come from another chat or forum topic.
+//
+// Note: this struct grows across Bot API 7.0 sections — fields like Origin
+// (MessageOrigin), LinkPreviewOptions, Giveaway, GiveawayWinners are added
+// alongside their respective sections.
+type ExternalReplyInfo struct {
+	// Chat is the conversation the original message belongs to. Available
+	// only if the chat is a supergroup or a channel.
+	//
+	// optional
+	Chat *Chat `json:"chat,omitempty"`
+	// MessageID is the unique message identifier inside the original chat.
+	// Available only if the original chat is a supergroup or a channel.
+	//
+	// optional
+	MessageID int `json:"message_id,omitempty"`
+	// Animation is set if the message is an animation.
+	//
+	// optional
+	Animation *Animation `json:"animation,omitempty"`
+	// Audio is set if the message is an audio file.
+	//
+	// optional
+	Audio *Audio `json:"audio,omitempty"`
+	// Document is set if the message is a general file.
+	//
+	// optional
+	Document *Document `json:"document,omitempty"`
+	// Photo is set if the message is a photo.
+	//
+	// optional
+	Photo []PhotoSize `json:"photo,omitempty"`
+	// Sticker is set if the message is a sticker.
+	//
+	// optional
+	Sticker *Sticker `json:"sticker,omitempty"`
+	// Story is set if the message is a forwarded story.
+	//
+	// optional
+	Story *Story `json:"story,omitempty"`
+	// Video is set if the message is a video.
+	//
+	// optional
+	Video *Video `json:"video,omitempty"`
+	// VideoNote is set if the message is a video note.
+	//
+	// optional
+	VideoNote *VideoNote `json:"video_note,omitempty"`
+	// Voice is set if the message is a voice message.
+	//
+	// optional
+	Voice *Voice `json:"voice,omitempty"`
+	// HasMediaSpoiler is true, if the message media is covered by a spoiler animation.
+	//
+	// optional
+	HasMediaSpoiler bool `json:"has_media_spoiler,omitempty"`
+	// Contact is set if the message is a shared contact.
+	//
+	// optional
+	Contact *Contact `json:"contact,omitempty"`
+	// Dice is set if the message is a dice with random value.
+	//
+	// optional
+	Dice *Dice `json:"dice,omitempty"`
+	// Game is set if the message is a game.
+	//
+	// optional
+	Game *Game `json:"game,omitempty"`
+	// Invoice is set if the message is an invoice for a payment.
+	//
+	// optional
+	Invoice *Invoice `json:"invoice,omitempty"`
+	// Location is set if the message is a shared location.
+	//
+	// optional
+	Location *Location `json:"location,omitempty"`
+	// Poll is set if the message is a native poll.
+	//
+	// optional
+	Poll *Poll `json:"poll,omitempty"`
+	// Venue is set if the message is a venue.
+	//
+	// optional
+	Venue *Venue `json:"venue,omitempty"`
+}
+
+// ReplyParameters describes reply parameters for the message that is being sent.
+type ReplyParameters struct {
+	// MessageID is the identifier of the message that will be replied to in
+	// the current chat, or in the chat ChatID if it is specified.
+	MessageID int `json:"message_id"`
+	// ChatID, if the message to be replied to is from a different chat, is
+	// the unique identifier for the chat or username of the channel
+	// (@channelusername). Pass int64 or string.
+	//
+	// optional
+	ChatID any `json:"chat_id,omitempty"`
+	// AllowSendingWithoutReply is true if the message should be sent even if
+	// the specified message to be replied to is not found.
+	//
+	// optional
+	AllowSendingWithoutReply bool `json:"allow_sending_without_reply,omitempty"`
+	// Quote is the quoted part of the message to be replied to. Should be a
+	// substring of the original message, including bold, italic, underline,
+	// strikethrough, spoiler, and custom_emoji entities.
+	//
+	// optional
+	Quote string `json:"quote,omitempty"`
+	// QuoteParseMode is the mode for parsing entities in the quote.
+	//
+	// optional
+	QuoteParseMode string `json:"quote_parse_mode,omitempty"`
+	// QuoteEntities is a list of special entities that appear in the quote.
+	// It can be specified instead of QuoteParseMode.
+	//
+	// optional
+	QuoteEntities []MessageEntity `json:"quote_entities,omitempty"`
+	// QuotePosition is the position of the quote in the original message in
+	// UTF-16 code units.
+	//
+	// optional
+	QuotePosition int `json:"quote_position,omitempty"`
 }
 
 // ChatLocation represents a location to which a chat is connected.
