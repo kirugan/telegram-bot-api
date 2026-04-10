@@ -1938,6 +1938,9 @@ type ChatAdministratorRights struct {
 	CanPostMessages     bool `json:"can_post_messages"`
 	CanEditMessages     bool `json:"can_edit_messages"`
 	CanPinMessages      bool `json:"can_pin_messages"`
+	CanPostStories      bool `json:"can_post_stories"`
+	CanEditStories      bool `json:"can_edit_stories"`
+	CanDeleteStories    bool `json:"can_delete_stories"`
 	CanManageTopics     bool `json:"can_manage_topics"`
 }
 
@@ -2031,6 +2034,21 @@ type ChatMember struct {
 	//
 	// optional
 	CanPinMessages bool `json:"can_pin_messages,omitempty"`
+	// CanPostStories administrators only.
+	// True, if the administrator can post stories to the chat.
+	//
+	// optional
+	CanPostStories bool `json:"can_post_stories,omitempty"`
+	// CanEditStories administrators only.
+	// True, if the administrator can edit stories posted by other users.
+	//
+	// optional
+	CanEditStories bool `json:"can_edit_stories,omitempty"`
+	// CanDeleteStories administrators only.
+	// True, if the administrator can delete stories posted by other users.
+	//
+	// optional
+	CanDeleteStories bool `json:"can_delete_stories,omitempty"`
 	// CanManageTopics administrators and restricted only.
 	// True, if the user is allowed to create, rename, close, and reopen
 	// forum topics; supergroups only.
@@ -2289,10 +2307,20 @@ type GeneralForumTopicUnhidden struct{}
 // to write messages after adding it to the attachment menu, launching a Web
 // App from a link, or accepting an explicit request.
 type WriteAccessAllowed struct {
+	// FromRequest is true if the access was granted after the user accepted
+	// an explicit request from a Web App sent by the method requestWriteAccess.
+	//
+	// optional
+	FromRequest bool `json:"from_request,omitempty"`
 	// WebAppName is the name of the Web App which was launched from a link.
 	//
 	// optional
 	WebAppName string `json:"web_app_name,omitempty"`
+	// FromAttachmentMenu is true if the access was granted when the bot was
+	// added to the attachment or side menu.
+	//
+	// optional
+	FromAttachmentMenu bool `json:"from_attachment_menu,omitempty"`
 }
 
 // BotCommand represents a bot command.
