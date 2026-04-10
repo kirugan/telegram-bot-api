@@ -1366,8 +1366,9 @@ type KickChatMemberConfig = BanChatMemberConfig
 // RestrictChatMemberConfig contains fields to restrict members of chat
 type RestrictChatMemberConfig struct {
 	ChatMemberConfig
-	UntilDate   int64
-	Permissions *ChatPermissions
+	UntilDate                     int64
+	Permissions                   *ChatPermissions
+	UseIndependentChatPermissions bool
 }
 
 func (config RestrictChatMemberConfig) method() string {
@@ -1381,6 +1382,7 @@ func (config RestrictChatMemberConfig) params() (Params, error) {
 	params.AddNonZero64("user_id", config.UserID)
 
 	err := params.AddInterface("permissions", config.Permissions)
+	params.AddBool("use_independent_chat_permissions", config.UseIndependentChatPermissions)
 	params.AddNonZero64("until_date", config.UntilDate)
 
 	return params, err
@@ -1544,7 +1546,8 @@ func (ChatAdministratorsConfig) method() string {
 // restrict members.
 type SetChatPermissionsConfig struct {
 	ChatConfig
-	Permissions *ChatPermissions
+	Permissions                   *ChatPermissions
+	UseIndependentChatPermissions bool
 }
 
 func (SetChatPermissionsConfig) method() string {
@@ -1556,6 +1559,7 @@ func (config SetChatPermissionsConfig) params() (Params, error) {
 
 	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
 	err := params.AddInterface("permissions", config.Permissions)
+	params.AddBool("use_independent_chat_permissions", config.UseIndependentChatPermissions)
 
 	return params, err
 }
