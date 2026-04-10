@@ -60,6 +60,11 @@ func (p Params) AddInterface(key string, value interface{}) error {
 	return nil
 }
 
+// AddAny adds a value of any type by JSON-marshalling it.
+func (p Params) AddAny(key string, value any) error {
+	return p.AddInterface(key, value)
+}
+
 // AddFirstValid attempts to add the first item that is not a default value.
 //
 // For example, AddFirstValid(0, "", "test") would add "test".
