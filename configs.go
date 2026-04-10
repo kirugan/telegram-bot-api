@@ -418,6 +418,7 @@ type PhotoConfig struct {
 	Caption         string
 	ParseMode       string
 	CaptionEntities []MessageEntity
+	HasSpoiler      bool
 }
 
 func (config PhotoConfig) params() (Params, error) {
@@ -428,6 +429,7 @@ func (config PhotoConfig) params() (Params, error) {
 
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("has_spoiler", config.HasSpoiler)
 	err = params.AddInterface("caption_entities", config.CaptionEntities)
 
 	return params, err
@@ -570,6 +572,7 @@ type VideoConfig struct {
 	ParseMode         string
 	CaptionEntities   []MessageEntity
 	SupportsStreaming bool
+	HasSpoiler        bool
 }
 
 func (config VideoConfig) params() (Params, error) {
@@ -582,6 +585,7 @@ func (config VideoConfig) params() (Params, error) {
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	params.AddBool("supports_streaming", config.SupportsStreaming)
+	params.AddBool("has_spoiler", config.HasSpoiler)
 	err = params.AddInterface("caption_entities", config.CaptionEntities)
 
 	return params, err
@@ -615,6 +619,7 @@ type AnimationConfig struct {
 	Caption         string
 	ParseMode       string
 	CaptionEntities []MessageEntity
+	HasSpoiler      bool
 }
 
 func (config AnimationConfig) params() (Params, error) {
@@ -626,6 +631,7 @@ func (config AnimationConfig) params() (Params, error) {
 	params.AddNonZero("duration", config.Duration)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("has_spoiler", config.HasSpoiler)
 	err = params.AddInterface("caption_entities", config.CaptionEntities)
 
 	return params, err
@@ -2139,6 +2145,106 @@ func (config GetForumTopicIconStickersConfig) method() string {
 
 func (config GetForumTopicIconStickersConfig) params() (Params, error) {
 	return make(Params), nil
+}
+
+// EditGeneralForumTopicConfig edits the name of the 'General' topic in a
+// forum supergroup chat. The bot must have the can_manage_topics
+// administrator rights.
+type EditGeneralForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+	Name               string // required, 1-128 characters
+}
+
+func (config EditGeneralForumTopicConfig) method() string {
+	return "editGeneralForumTopic"
+}
+
+func (config EditGeneralForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	params["name"] = config.Name
+
+	return params, nil
+}
+
+// CloseGeneralForumTopicConfig closes an open 'General' topic in a forum
+// supergroup chat. The bot must have the can_manage_topics administrator rights.
+type CloseGeneralForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+}
+
+func (config CloseGeneralForumTopicConfig) method() string {
+	return "closeGeneralForumTopic"
+}
+
+func (config CloseGeneralForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+
+	return params, nil
+}
+
+// ReopenGeneralForumTopicConfig reopens a closed 'General' topic in a forum
+// supergroup chat. The bot must have the can_manage_topics administrator
+// rights. The topic will be automatically unhidden if it was hidden.
+type ReopenGeneralForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+}
+
+func (config ReopenGeneralForumTopicConfig) method() string {
+	return "reopenGeneralForumTopic"
+}
+
+func (config ReopenGeneralForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+
+	return params, nil
+}
+
+// HideGeneralForumTopicConfig hides the 'General' topic in a forum supergroup
+// chat. The bot must have the can_manage_topics administrator rights. The
+// topic will be automatically closed if it was open.
+type HideGeneralForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+}
+
+func (config HideGeneralForumTopicConfig) method() string {
+	return "hideGeneralForumTopic"
+}
+
+func (config HideGeneralForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+
+	return params, nil
+}
+
+// UnhideGeneralForumTopicConfig unhides the 'General' topic in a forum
+// supergroup chat. The bot must have the can_manage_topics administrator rights.
+type UnhideGeneralForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+}
+
+func (config UnhideGeneralForumTopicConfig) method() string {
+	return "unhideGeneralForumTopic"
+}
+
+func (config UnhideGeneralForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+
+	return params, nil
 }
 
 // SetChatPhotoConfig allows you to set a group, supergroup, or channel's photo.

@@ -300,6 +300,17 @@ type Chat struct {
 	//
 	// optional
 	EmojiStatusCustomEmojiID string `json:"emoji_status_custom_emoji_id,omitempty"`
+	// HasHiddenMembers is true, if non-administrators can only see bots and
+	// administrators in the chat. Returned only in getChat.
+	//
+	// optional
+	HasHiddenMembers bool `json:"has_hidden_members,omitempty"`
+	// HasAggressiveAntiSpamEnabled is true, if aggressive anti-spam checks are
+	// enabled in the supergroup. Visible only to chat administrators. Returned
+	// only in getChat.
+	//
+	// optional
+	HasAggressiveAntiSpamEnabled bool `json:"has_aggressive_anti_spam_enabled,omitempty"`
 	// Photo is a chat photo
 	Photo *ChatPhoto `json:"photo"`
 	// Bio is the bio of the other party in a private chat. Returned only in
@@ -701,6 +712,10 @@ type Message struct {
 	//
 	// optional
 	ForumTopicCreated *ForumTopicCreated `json:"forum_topic_created,omitempty"`
+	// ForumTopicEdited is a service message: forum topic edited
+	//
+	// optional
+	ForumTopicEdited *ForumTopicEdited `json:"forum_topic_edited,omitempty"`
 	// ForumTopicClosed is a service message: forum topic closed
 	//
 	// optional
@@ -709,6 +724,23 @@ type Message struct {
 	//
 	// optional
 	ForumTopicReopened *ForumTopicReopened `json:"forum_topic_reopened,omitempty"`
+	// GeneralForumTopicHidden is a service message: the General forum topic hidden
+	//
+	// optional
+	GeneralForumTopicHidden *GeneralForumTopicHidden `json:"general_forum_topic_hidden,omitempty"`
+	// GeneralForumTopicUnhidden is a service message: the General forum topic unhidden
+	//
+	// optional
+	GeneralForumTopicUnhidden *GeneralForumTopicUnhidden `json:"general_forum_topic_unhidden,omitempty"`
+	// WriteAccessAllowed is a service message: the user allowed the bot added to
+	// the attachment menu to write messages
+	//
+	// optional
+	WriteAccessAllowed *WriteAccessAllowed `json:"write_access_allowed,omitempty"`
+	// HasMediaSpoiler is true, if the message media is covered by a spoiler animation
+	//
+	// optional
+	HasMediaSpoiler bool `json:"has_media_spoiler,omitempty"`
 	// ManagedBotCreated is a service message: user created a bot
 	// that will be managed by the current bot.
 	//
@@ -1375,6 +1407,12 @@ type WebAppInfo struct {
 type ReplyKeyboardMarkup struct {
 	// Keyboard is an array of button rows, each represented by an Array of KeyboardButton objects
 	Keyboard [][]KeyboardButton `json:"keyboard"`
+	// IsPersistent requests clients to always show the keyboard when the regular
+	// keyboard is hidden. Defaults to false, in which case the custom keyboard
+	// can be hidden and opened with a keyboard icon.
+	//
+	// optional
+	IsPersistent bool `json:"is_persistent,omitempty"`
 	// ResizeKeyboard requests clients to resize the keyboard vertically for optimal fit
 	// (e.g., make the keyboard smaller if there are just two rows of buttons).
 	// Defaults to false, in which case the custom keyboard
@@ -1998,6 +2036,19 @@ type ForumTopicCreated struct {
 	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
 }
 
+// ForumTopicEdited represents a service message about an edited forum topic.
+type ForumTopicEdited struct {
+	// Name is the new name of the topic, if it was edited.
+	//
+	// optional
+	Name string `json:"name,omitempty"`
+	// IconCustomEmojiID is the new identifier of the custom emoji shown as the
+	// topic icon, if it was edited; an empty string if the icon was removed.
+	//
+	// optional
+	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
+}
+
 // ForumTopicClosed represents a service message about a forum topic closed
 // in the chat. Currently holds no information.
 type ForumTopicClosed struct{}
@@ -2005,6 +2056,18 @@ type ForumTopicClosed struct{}
 // ForumTopicReopened represents a service message about a forum topic
 // reopened in the chat. Currently holds no information.
 type ForumTopicReopened struct{}
+
+// GeneralForumTopicHidden represents a service message about General forum
+// topic hidden in the chat. Currently holds no information.
+type GeneralForumTopicHidden struct{}
+
+// GeneralForumTopicUnhidden represents a service message about General forum
+// topic unhidden in the chat. Currently holds no information.
+type GeneralForumTopicUnhidden struct{}
+
+// WriteAccessAllowed represents a service message about a user allowing a bot
+// added to the attachment menu to write messages. Currently holds no information.
+type WriteAccessAllowed struct{}
 
 // BotCommand represents a bot command.
 type BotCommand struct {
@@ -2084,6 +2147,10 @@ type BaseInputMedia struct {
 // InputMediaPhoto is a photo to send as part of a media group.
 type InputMediaPhoto struct {
 	BaseInputMedia
+	// HasSpoiler pass True if the photo needs to be covered with a spoiler animation.
+	//
+	// optional
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
 }
 
 // InputMediaVideo is a video to send as part of a media group.
@@ -2110,6 +2177,10 @@ type InputMediaVideo struct {
 	//
 	// optional
 	SupportsStreaming bool `json:"supports_streaming,omitempty"`
+	// HasSpoiler pass True if the video needs to be covered with a spoiler animation.
+	//
+	// optional
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
 }
 
 // InputMediaAnimation is an animation to send as part of a media group.
@@ -2132,6 +2203,10 @@ type InputMediaAnimation struct {
 	//
 	// optional
 	Duration int `json:"duration,omitempty"`
+	// HasSpoiler pass True if the animation needs to be covered with a spoiler animation.
+	//
+	// optional
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
 }
 
 // InputMediaAudio is an audio to send as part of a media group.

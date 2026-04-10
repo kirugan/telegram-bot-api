@@ -186,7 +186,7 @@ func NewMediaGroup(chatID int64, files []interface{}) MediaGroupConfig {
 // NewInputMediaPhoto creates a new InputMediaPhoto.
 func NewInputMediaPhoto(media RequestFileData) InputMediaPhoto {
 	return InputMediaPhoto{
-		BaseInputMedia{
+		BaseInputMedia: BaseInputMedia{
 			Type:  "photo",
 			Media: media,
 		},
