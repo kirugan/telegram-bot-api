@@ -1241,13 +1241,12 @@ func (config DeleteWebhookConfig) params() (Params, error) {
 
 // InlineConfig contains information on making an InlineQuery response.
 type InlineConfig struct {
-	InlineQueryID     string        `json:"inline_query_id"`
-	Results           []interface{} `json:"results"`
-	CacheTime         int           `json:"cache_time"`
-	IsPersonal        bool          `json:"is_personal"`
-	NextOffset        string        `json:"next_offset"`
-	SwitchPMText      string        `json:"switch_pm_text"`
-	SwitchPMParameter string        `json:"switch_pm_parameter"`
+	InlineQueryID string                    `json:"inline_query_id"`
+	Results       []interface{}             `json:"results"`
+	CacheTime     int                       `json:"cache_time"`
+	IsPersonal    bool                      `json:"is_personal"`
+	NextOffset    string                    `json:"next_offset"`
+	Button        *InlineQueryResultsButton `json:"button,omitempty"`
 }
 
 func (config InlineConfig) method() string {
@@ -1261,9 +1260,10 @@ func (config InlineConfig) params() (Params, error) {
 	params.AddNonZero("cache_time", config.CacheTime)
 	params.AddBool("is_personal", config.IsPersonal)
 	params.AddNonEmpty("next_offset", config.NextOffset)
-	params.AddNonEmpty("switch_pm_text", config.SwitchPMText)
-	params.AddNonEmpty("switch_pm_parameter", config.SwitchPMParameter)
-	err := params.AddInterface("results", config.Results)
+	if err := params.AddAny("button", config.Button); err != nil {
+		return params, err
+	}
+	err := params.AddAny("results", config.Results)
 
 	return params, err
 }
@@ -2834,6 +2834,43 @@ func (config DeleteMyCommandsConfig) params() (Params, error) {
 	params.AddNonEmpty("language_code", config.LanguageCode)
 
 	return params, err
+}
+
+// SetMyNameConfig changes the bot's name. Different names can be set for
+// different user languages.
+type SetMyNameConfig struct {
+	Name         string
+	LanguageCode string
+}
+
+func (config SetMyNameConfig) method() string {
+	return "setMyName"
+}
+
+func (config SetMyNameConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonEmpty("name", config.Name)
+	params.AddNonEmpty("language_code", config.LanguageCode)
+
+	return params, nil
+}
+
+// GetMyNameConfig returns the current bot name for the given user language.
+type GetMyNameConfig struct {
+	LanguageCode string
+}
+
+func (config GetMyNameConfig) method() string {
+	return "getMyName"
+}
+
+func (config GetMyNameConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonEmpty("language_code", config.LanguageCode)
+
+	return params, nil
 }
 
 // SetMyDescriptionConfig changes the bot's description, which is shown in the

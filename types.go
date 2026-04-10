@@ -1695,6 +1695,13 @@ type InlineKeyboardButton struct {
 	//
 	// optional
 	SwitchInlineQueryCurrentChat *string `json:"switch_inline_query_current_chat,omitempty"`
+	// SwitchInlineQueryChosenChat if set, pressing the button will prompt the
+	// user to select one of their chats of the specified type, open that chat
+	// and insert the bot's username and the specified inline query in the
+	// input field.
+	//
+	// optional
+	SwitchInlineQueryChosenChat *SwitchInlineQueryChosenChat `json:"switch_inline_query_chosen_chat,omitempty"`
 	// CallbackGame description of the game that will be launched when the user presses the button.
 	//
 	// optional
@@ -1705,6 +1712,50 @@ type InlineKeyboardButton struct {
 	//
 	// optional
 	Pay bool `json:"pay,omitempty"`
+}
+
+// SwitchInlineQueryChosenChat represents an inline button that switches the
+// current user to inline mode in a chosen chat, with an optional default
+// inline query.
+type SwitchInlineQueryChosenChat struct {
+	// Query is the default inline query to be inserted in the input field.
+	// If left empty, only the bot's username will be inserted.
+	//
+	// optional
+	Query string `json:"query,omitempty"`
+	// AllowUserChats is true if private chats with users can be chosen.
+	//
+	// optional
+	AllowUserChats bool `json:"allow_user_chats,omitempty"`
+	// AllowBotChats is true if private chats with bots can be chosen.
+	//
+	// optional
+	AllowBotChats bool `json:"allow_bot_chats,omitempty"`
+	// AllowGroupChats is true if group and supergroup chats can be chosen.
+	//
+	// optional
+	AllowGroupChats bool `json:"allow_group_chats,omitempty"`
+	// AllowChannelChats is true if channel chats can be chosen.
+	//
+	// optional
+	AllowChannelChats bool `json:"allow_channel_chats,omitempty"`
+}
+
+// InlineQueryResultsButton represents a button to be shown above inline query
+// results. Exactly one of WebApp or StartParameter must be set.
+type InlineQueryResultsButton struct {
+	// Text label of the button.
+	Text string `json:"text"`
+	// WebApp is the description of the Web App that will be launched when the
+	// user presses the button.
+	//
+	// optional
+	WebApp *WebAppInfo `json:"web_app,omitempty"`
+	// StartParameter is the deep-linking parameter for the /start message
+	// sent to the bot when the user presses the button. 1-64 characters.
+	//
+	// optional
+	StartParameter string `json:"start_parameter,omitempty"`
 }
 
 // LoginURL represents a parameter of the inline keyboard button used to
@@ -2048,6 +2099,11 @@ type ChatMemberUpdated struct {
 	//
 	// optional
 	InviteLink *ChatInviteLink `json:"invite_link,omitempty"`
+	// ViaChatFolderInviteLink is true, if the user joined the chat via a chat
+	// folder invite link.
+	//
+	// optional
+	ViaChatFolderInviteLink bool `json:"via_chat_folder_invite_link,omitempty"`
 }
 
 // ChatJoinRequest represents a join request sent to a chat.
@@ -2210,8 +2266,14 @@ type GeneralForumTopicHidden struct{}
 type GeneralForumTopicUnhidden struct{}
 
 // WriteAccessAllowed represents a service message about a user allowing a bot
-// added to the attachment menu to write messages. Currently holds no information.
-type WriteAccessAllowed struct{}
+// to write messages after adding it to the attachment menu, launching a Web
+// App from a link, or accepting an explicit request.
+type WriteAccessAllowed struct {
+	// WebAppName is the name of the Web App which was launched from a link.
+	//
+	// optional
+	WebAppName string `json:"web_app_name,omitempty"`
+}
 
 // BotCommand represents a bot command.
 type BotCommand struct {
@@ -2458,6 +2520,11 @@ type Sticker struct {
 	//
 	// optional
 	FileSize int `json:"file_size,omitempty"`
+}
+
+// BotName represents the bot's name.
+type BotName struct {
+	Name string `json:"name"`
 }
 
 // BotDescription represents the bot's description.

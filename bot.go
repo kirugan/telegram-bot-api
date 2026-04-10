@@ -687,6 +687,19 @@ func (bot *BotAPI) GetForumTopicIconStickers() ([]Sticker, error) {
 	return stickers, err
 }
 
+// GetMyName returns the current bot name for the given user language.
+func (bot *BotAPI) GetMyName(config GetMyNameConfig) (BotName, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return BotName{}, err
+	}
+
+	var name BotName
+	err = json.Unmarshal(resp.Result, &name)
+
+	return name, err
+}
+
 // GetMyDescription returns the current bot description for the given user language.
 func (bot *BotAPI) GetMyDescription(config GetMyDescriptionConfig) (BotDescription, error) {
 	resp, err := bot.Request(config)
