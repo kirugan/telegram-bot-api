@@ -105,6 +105,19 @@ type Update struct {
 	//
 	// optional
 	PollAnswer *PollAnswer `json:"poll_answer,omitempty"`
+	// MessageReaction is a reaction to a message that was changed by a user.
+	// The bot must be an administrator in the chat and must explicitly specify
+	// "message_reaction" in the list of allowed_updates to receive these updates.
+	// The update isn't received for reactions set by bots.
+	//
+	// optional
+	MessageReaction *MessageReactionUpdated `json:"message_reaction,omitempty"`
+	// MessageReactionCount is reactions to a message with anonymous reactions
+	// were changed. The bot must be an administrator in the chat and must
+	// explicitly specify "message_reaction_count" in the list of allowed_updates.
+	//
+	// optional
+	MessageReactionCount *MessageReactionCountUpdated `json:"message_reaction_count,omitempty"`
 	// MyChatMember is the bot's chat member status was updated in a chat. For
 	// private chats, this update is received only when the bot is blocked or
 	// unblocked by the user.
@@ -360,6 +373,12 @@ type Chat struct {
 	//
 	// optional
 	PinnedMessage *Message `json:"pinned_message,omitempty"`
+	// AvailableReactions is the list of available reactions allowed in the
+	// chat. If omitted, then all emoji reactions are allowed. Returned only
+	// in getChat.
+	//
+	// optional
+	AvailableReactions []ReactionType `json:"available_reactions,omitempty"`
 	// Permissions are default chat member permissions, for groups and
 	// supergroups. Returned only in getChat.
 	//
@@ -2234,6 +2253,77 @@ type ChatPermissions struct {
 
 // Story represents a forwarded story. Currently holds no information.
 type Story struct{}
+
+// Reaction type constants.
+const (
+	ReactionTypeEmoji       = "emoji"
+	ReactionTypeCustomEmoji = "custom_emoji"
+	ReactionTypePaid        = "paid"
+)
+
+// ReactionType describes the type of a reaction. The Type field discriminates
+// between concrete variants:
+//   - "emoji"        → Emoji is set
+//   - "custom_emoji" → CustomEmojiID is set
+//   - "paid"         → no extra fields
+type ReactionType struct {
+	// Type of the reaction. One of "emoji", "custom_emoji", "paid".
+	Type string `json:"type"`
+	// Emoji is set when Type == "emoji". One of the supported emoji.
+	//
+	// optional
+	Emoji string `json:"emoji,omitempty"`
+	// CustomEmojiID is set when Type == "custom_emoji".
+	//
+	// optional
+	CustomEmojiID string `json:"custom_emoji_id,omitempty"`
+}
+
+// ReactionCount represents a reaction added to a message along with the
+// number of times it was added.
+type ReactionCount struct {
+	// Type of the reaction.
+	Type ReactionType `json:"type"`
+	// TotalCount is the number of times the reaction was added.
+	TotalCount int `json:"total_count"`
+}
+
+// MessageReactionUpdated represents a change of a reaction on a message
+// performed by a user.
+type MessageReactionUpdated struct {
+	// Chat containing the message the user reacted to.
+	Chat Chat `json:"chat"`
+	// MessageID is the unique identifier of the message inside the chat.
+	MessageID int `json:"message_id"`
+	// User that changed the reaction, if the user isn't anonymous.
+	//
+	// optional
+	User *User `json:"user,omitempty"`
+	// ActorChat is the chat on behalf of which the reaction was changed,
+	// if the user is anonymous.
+	//
+	// optional
+	ActorChat *Chat `json:"actor_chat,omitempty"`
+	// Date of the change in Unix time.
+	Date int `json:"date"`
+	// OldReaction is the previous list of reaction types that were set by the user.
+	OldReaction []ReactionType `json:"old_reaction"`
+	// NewReaction is the new list of reaction types that have been set by the user.
+	NewReaction []ReactionType `json:"new_reaction"`
+}
+
+// MessageReactionCountUpdated represents reaction changes on a message with
+// anonymous reactions.
+type MessageReactionCountUpdated struct {
+	// Chat containing the message.
+	Chat Chat `json:"chat"`
+	// MessageID is the unique identifier of the message inside the chat.
+	MessageID int `json:"message_id"`
+	// Date of the change in Unix time.
+	Date int `json:"date"`
+	// Reactions is the list of reactions that are present on the message.
+	Reactions []ReactionCount `json:"reactions"`
+}
 
 // ChatLocation represents a location to which a chat is connected.
 type ChatLocation struct {

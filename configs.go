@@ -86,6 +86,12 @@ const (
 	// only in polls that were sent by the bot itself.
 	UpdateTypePollAnswer = "poll_answer"
 
+	// UpdateTypeMessageReaction is when a reaction to a message was changed by a user.
+	UpdateTypeMessageReaction = "message_reaction"
+
+	// UpdateTypeMessageReactionCount is when reactions to a message with anonymous reactions were changed.
+	UpdateTypeMessageReactionCount = "message_reaction_count"
+
 	// UpdateTypeMyChatMember is when the bot's chat member status was updated in a chat. For private chats, this
 	// update is received only when the bot is blocked or unblocked by the user.
 	UpdateTypeMyChatMember = "my_chat_member"
@@ -1950,6 +1956,34 @@ func (config DeleteMessageConfig) params() (Params, error) {
 	return params, nil
 }
 
+// SetMessageReactionConfig sets the bot's reaction to a message. Pass an
+// empty Reaction to remove all reactions from the message.
+type SetMessageReactionConfig struct {
+	ChatID          int64
+	ChannelUsername string
+	MessageID       int
+	Reaction        []ReactionType
+	IsBig           bool
+}
+
+func (config SetMessageReactionConfig) method() string {
+	return "setMessageReaction"
+}
+
+func (config SetMessageReactionConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
+	params.AddNonZero("message_id", config.MessageID)
+	params.AddBool("is_big", config.IsBig)
+
+	err := params.AddAny("reaction", config.Reaction)
+
+	return params, err
+}
+
 // PinChatMessageConfig contains information of a message in a chat to pin.
 type PinChatMessageConfig struct {
 	ChatID              int64
@@ -2281,7 +2315,9 @@ func (config UnpinAllGeneralForumTopicMessagesConfig) method() string {
 func (config UnpinAllGeneralForumTopicMessagesConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
