@@ -367,7 +367,7 @@ var (
 	_ Fileable = (*AddStickerConfig)(nil)
 	_ Fileable = (*MediaGroupConfig)(nil)
 	_ Fileable = (*WebhookConfig)(nil)
-	_ Fileable = (*SetStickerSetThumbConfig)(nil)
+	_ Fileable = (*SetStickerSetThumbnailConfig)(nil)
 )
 
 // Ensure all RequestFileData types are correct.

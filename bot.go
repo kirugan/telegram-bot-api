@@ -687,6 +687,33 @@ func (bot *BotAPI) GetForumTopicIconStickers() ([]Sticker, error) {
 	return stickers, err
 }
 
+// GetMyDescription returns the current bot description for the given user language.
+func (bot *BotAPI) GetMyDescription(config GetMyDescriptionConfig) (BotDescription, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return BotDescription{}, err
+	}
+
+	var desc BotDescription
+	err = json.Unmarshal(resp.Result, &desc)
+
+	return desc, err
+}
+
+// GetMyShortDescription returns the current bot short description for the
+// given user language.
+func (bot *BotAPI) GetMyShortDescription(config GetMyShortDescriptionConfig) (BotShortDescription, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return BotShortDescription{}, err
+	}
+
+	var desc BotShortDescription
+	err = json.Unmarshal(resp.Result, &desc)
+
+	return desc, err
+}
+
 // StopPoll stops a poll and returns the result.
 func (bot *BotAPI) StopPoll(config StopPollConfig) (Poll, error) {
 	resp, err := bot.Request(config)

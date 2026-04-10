@@ -414,7 +414,7 @@ func (config CopyMessageConfig) method() string {
 // PhotoConfig contains information about a SendPhoto request.
 type PhotoConfig struct {
 	BaseFile
-	Thumb           RequestFileData
+	Thumbnail       RequestFileData
 	Caption         string
 	ParseMode       string
 	CaptionEntities []MessageEntity
@@ -445,10 +445,10 @@ func (config PhotoConfig) files() []RequestFile {
 		Data: config.File,
 	}}
 
-	if config.Thumb != nil {
+	if config.Thumbnail != nil {
 		files = append(files, RequestFile{
-			Name: "thumb",
-			Data: config.Thumb,
+			Name: "thumbnail",
+			Data: config.Thumbnail,
 		})
 	}
 
@@ -458,7 +458,7 @@ func (config PhotoConfig) files() []RequestFile {
 // AudioConfig contains information about a SendAudio request.
 type AudioConfig struct {
 	BaseFile
-	Thumb           RequestFileData
+	Thumbnail       RequestFileData
 	Caption         string
 	ParseMode       string
 	CaptionEntities []MessageEntity
@@ -493,10 +493,10 @@ func (config AudioConfig) files() []RequestFile {
 		Data: config.File,
 	}}
 
-	if config.Thumb != nil {
+	if config.Thumbnail != nil {
 		files = append(files, RequestFile{
-			Name: "thumb",
-			Data: config.Thumb,
+			Name: "thumbnail",
+			Data: config.Thumbnail,
 		})
 	}
 
@@ -506,7 +506,7 @@ func (config AudioConfig) files() []RequestFile {
 // DocumentConfig contains information about a SendDocument request.
 type DocumentConfig struct {
 	BaseFile
-	Thumb                       RequestFileData
+	Thumbnail                   RequestFileData
 	Caption                     string
 	ParseMode                   string
 	CaptionEntities             []MessageEntity
@@ -533,10 +533,10 @@ func (config DocumentConfig) files() []RequestFile {
 		Data: config.File,
 	}}
 
-	if config.Thumb != nil {
+	if config.Thumbnail != nil {
 		files = append(files, RequestFile{
-			Name: "thumb",
-			Data: config.Thumb,
+			Name: "thumbnail",
+			Data: config.Thumbnail,
 		})
 	}
 
@@ -546,10 +546,19 @@ func (config DocumentConfig) files() []RequestFile {
 // StickerConfig contains information about a SendSticker request.
 type StickerConfig struct {
 	BaseFile
+	// Emoji associated with the sticker; only for just uploaded stickers.
+	Emoji string
 }
 
 func (config StickerConfig) params() (Params, error) {
-	return config.BaseChat.params()
+	params, err := config.BaseChat.params()
+	if err != nil {
+		return params, err
+	}
+
+	params.AddNonEmpty("emoji", config.Emoji)
+
+	return params, nil
 }
 
 func (config StickerConfig) method() string {
@@ -566,7 +575,7 @@ func (config StickerConfig) files() []RequestFile {
 // VideoConfig contains information about a SendVideo request.
 type VideoConfig struct {
 	BaseFile
-	Thumb             RequestFileData
+	Thumbnail         RequestFileData
 	Duration          int
 	Caption           string
 	ParseMode         string
@@ -601,10 +610,10 @@ func (config VideoConfig) files() []RequestFile {
 		Data: config.File,
 	}}
 
-	if config.Thumb != nil {
+	if config.Thumbnail != nil {
 		files = append(files, RequestFile{
-			Name: "thumb",
-			Data: config.Thumb,
+			Name: "thumbnail",
+			Data: config.Thumbnail,
 		})
 	}
 
@@ -615,7 +624,7 @@ func (config VideoConfig) files() []RequestFile {
 type AnimationConfig struct {
 	BaseFile
 	Duration        int
-	Thumb           RequestFileData
+	Thumbnail       RequestFileData
 	Caption         string
 	ParseMode       string
 	CaptionEntities []MessageEntity
@@ -647,10 +656,10 @@ func (config AnimationConfig) files() []RequestFile {
 		Data: config.File,
 	}}
 
-	if config.Thumb != nil {
+	if config.Thumbnail != nil {
 		files = append(files, RequestFile{
-			Name: "thumb",
-			Data: config.Thumb,
+			Name: "thumbnail",
+			Data: config.Thumbnail,
 		})
 	}
 
@@ -660,9 +669,9 @@ func (config AnimationConfig) files() []RequestFile {
 // VideoNoteConfig contains information about a SendVideoNote request.
 type VideoNoteConfig struct {
 	BaseFile
-	Thumb    RequestFileData
-	Duration int
-	Length   int
+	Thumbnail RequestFileData
+	Duration  int
+	Length    int
 }
 
 func (config VideoNoteConfig) params() (Params, error) {
@@ -684,10 +693,10 @@ func (config VideoNoteConfig) files() []RequestFile {
 		Data: config.File,
 	}}
 
-	if config.Thumb != nil {
+	if config.Thumbnail != nil {
 		files = append(files, RequestFile{
-			Name: "thumb",
-			Data: config.Thumb,
+			Name: "thumbnail",
+			Data: config.Thumbnail,
 		})
 	}
 
@@ -697,7 +706,7 @@ func (config VideoNoteConfig) files() []RequestFile {
 // VoiceConfig contains information about a SendVoice request.
 type VoiceConfig struct {
 	BaseFile
-	Thumb           RequestFileData
+	Thumbnail       RequestFileData
 	Caption         string
 	ParseMode       string
 	CaptionEntities []MessageEntity
@@ -728,10 +737,10 @@ func (config VoiceConfig) files() []RequestFile {
 		Data: config.File,
 	}}
 
-	if config.Thumb != nil {
+	if config.Thumbnail != nil {
 		files = append(files, RequestFile{
-			Name: "thumb",
-			Data: config.Thumb,
+			Name: "thumbnail",
+			Data: config.Thumbnail,
 		})
 	}
 
@@ -2362,10 +2371,11 @@ func (config GetCustomEmojiStickersConfig) params() (Params, error) {
 	return params, err
 }
 
-// UploadStickerConfig allows you to upload a sticker for use in a set later.
+// UploadStickerConfig uploads a sticker file for later use in a sticker set.
 type UploadStickerConfig struct {
-	UserID     int64
-	PNGSticker RequestFileData
+	UserID        int64
+	Sticker       RequestFileData // required
+	StickerFormat string          // required, one of StickerFormatStatic, StickerFormatAnimated, StickerFormatVideo
 }
 
 func (config UploadStickerConfig) method() string {
@@ -2376,29 +2386,27 @@ func (config UploadStickerConfig) params() (Params, error) {
 	params := make(Params)
 
 	params.AddNonZero64("user_id", config.UserID)
+	params.AddNonEmpty("sticker_format", config.StickerFormat)
 
 	return params, nil
 }
 
 func (config UploadStickerConfig) files() []RequestFile {
 	return []RequestFile{{
-		Name: "png_sticker",
-		Data: config.PNGSticker,
+		Name: "sticker",
+		Data: config.Sticker,
 	}}
 }
 
-// NewStickerSetConfig allows creating a new sticker set.
-//
-// You must set either PNGSticker or TGSSticker.
+// NewStickerSetConfig creates a new sticker set owned by a user.
 type NewStickerSetConfig struct {
-	UserID       int64
-	Name         string
-	Title        string
-	PNGSticker   RequestFileData
-	TGSSticker   RequestFileData
-	Emojis       string
-	StickerType  string // one of StickerTypeRegular, StickerTypeMask, StickerTypeCustomEmoji
-	MaskPosition *MaskPosition
+	UserID          int64
+	Name            string
+	Title           string
+	Stickers        []InputSticker
+	StickerFormat   string // one of StickerFormatStatic, StickerFormatAnimated, StickerFormatVideo
+	StickerType     string // one of StickerTypeRegular, StickerTypeMask, StickerTypeCustomEmoji
+	NeedsRepainting bool
 }
 
 func (config NewStickerSetConfig) method() string {
@@ -2411,38 +2419,24 @@ func (config NewStickerSetConfig) params() (Params, error) {
 	params.AddNonZero64("user_id", config.UserID)
 	params["name"] = config.Name
 	params["title"] = config.Title
-
-	params["emojis"] = config.Emojis
-
+	params.AddNonEmpty("sticker_format", config.StickerFormat)
 	params.AddNonEmpty("sticker_type", config.StickerType)
+	params.AddBool("needs_repainting", config.NeedsRepainting)
 
-	err := params.AddInterface("mask_position", config.MaskPosition)
+	err := params.AddAny("stickers", prepareInputStickersForParams(config.Stickers))
 
 	return params, err
 }
 
 func (config NewStickerSetConfig) files() []RequestFile {
-	if config.PNGSticker != nil {
-		return []RequestFile{{
-			Name: "png_sticker",
-			Data: config.PNGSticker,
-		}}
-	}
-
-	return []RequestFile{{
-		Name: "tgs_sticker",
-		Data: config.TGSSticker,
-	}}
+	return prepareInputStickersForFiles(config.Stickers)
 }
 
-// AddStickerConfig allows you to add a sticker to a set.
+// AddStickerConfig adds a new sticker to an existing sticker set.
 type AddStickerConfig struct {
-	UserID       int64
-	Name         string
-	PNGSticker   RequestFileData
-	TGSSticker   RequestFileData
-	Emojis       string
-	MaskPosition *MaskPosition
+	UserID  int64
+	Name    string
+	Sticker InputSticker
 }
 
 func (config AddStickerConfig) method() string {
@@ -2454,26 +2448,52 @@ func (config AddStickerConfig) params() (Params, error) {
 
 	params.AddNonZero64("user_id", config.UserID)
 	params["name"] = config.Name
-	params["emojis"] = config.Emojis
 
-	err := params.AddInterface("mask_position", config.MaskPosition)
+	err := params.AddAny("sticker", prepareInputStickerForParams(config.Sticker, 0))
 
 	return params, err
 }
 
 func (config AddStickerConfig) files() []RequestFile {
-	if config.PNGSticker != nil {
+	return prepareInputStickerForFiles(config.Sticker, 0)
+}
+
+// prepareInputStickerForParams returns a copy of the sticker with the
+// Sticker field replaced by an attach:// reference if it needs uploading.
+func prepareInputStickerForParams(s InputSticker, idx int) InputSticker {
+	if s.Sticker != nil && s.Sticker.NeedsUpload() {
+		s.Sticker = fileAttach(fmt.Sprintf("attach://sticker-%d", idx))
+	}
+	return s
+}
+
+// prepareInputStickerForFiles returns the upload entries for a single sticker.
+func prepareInputStickerForFiles(s InputSticker, idx int) []RequestFile {
+	if s.Sticker != nil && s.Sticker.NeedsUpload() {
 		return []RequestFile{{
-			Name: "png_sticker",
-			Data: config.PNGSticker,
+			Name: fmt.Sprintf("sticker-%d", idx),
+			Data: s.Sticker,
 		}}
 	}
+	return nil
+}
 
-	return []RequestFile{{
-		Name: "tgs_sticker",
-		Data: config.TGSSticker,
-	}}
+// prepareInputStickersForParams applies prepareInputStickerForParams to a slice.
+func prepareInputStickersForParams(stickers []InputSticker) []InputSticker {
+	out := make([]InputSticker, len(stickers))
+	for i, s := range stickers {
+		out[i] = prepareInputStickerForParams(s, i)
+	}
+	return out
+}
 
+// prepareInputStickersForFiles flattens the upload entries for a slice of stickers.
+func prepareInputStickersForFiles(stickers []InputSticker) []RequestFile {
+	var files []RequestFile
+	for i, s := range stickers {
+		files = append(files, prepareInputStickerForFiles(s, i)...)
+	}
+	return files
 }
 
 // SetStickerPositionConfig allows you to change the position of a sticker in a set.
@@ -2512,18 +2532,18 @@ func (config DeleteStickerConfig) params() (Params, error) {
 	return params, nil
 }
 
-// SetStickerSetThumbConfig allows you to set the thumbnail for a sticker set.
-type SetStickerSetThumbConfig struct {
-	Name   string
-	UserID int64
-	Thumb  RequestFileData
+// SetStickerSetThumbnailConfig sets the thumbnail of a sticker set.
+type SetStickerSetThumbnailConfig struct {
+	Name      string
+	UserID    int64
+	Thumbnail RequestFileData
 }
 
-func (config SetStickerSetThumbConfig) method() string {
-	return "setStickerSetThumb"
+func (config SetStickerSetThumbnailConfig) method() string {
+	return "setStickerSetThumbnail"
 }
 
-func (config SetStickerSetThumbConfig) params() (Params, error) {
+func (config SetStickerSetThumbnailConfig) params() (Params, error) {
 	params := make(Params)
 
 	params["name"] = config.Name
@@ -2532,11 +2552,129 @@ func (config SetStickerSetThumbConfig) params() (Params, error) {
 	return params, nil
 }
 
-func (config SetStickerSetThumbConfig) files() []RequestFile {
+func (config SetStickerSetThumbnailConfig) files() []RequestFile {
 	return []RequestFile{{
-		Name: "thumb",
-		Data: config.Thumb,
+		Name: "thumbnail",
+		Data: config.Thumbnail,
 	}}
+}
+
+// SetCustomEmojiStickerSetThumbnailConfig sets the thumbnail of a custom
+// emoji sticker set. The bot must own the sticker set.
+type SetCustomEmojiStickerSetThumbnailConfig struct {
+	Name          string
+	CustomEmojiID string // pass an empty string to drop the thumbnail
+}
+
+func (config SetCustomEmojiStickerSetThumbnailConfig) method() string {
+	return "setCustomEmojiStickerSetThumbnail"
+}
+
+func (config SetCustomEmojiStickerSetThumbnailConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["name"] = config.Name
+	params.AddNonEmpty("custom_emoji_id", config.CustomEmojiID)
+
+	return params, nil
+}
+
+// SetStickerSetTitleConfig sets the title of a sticker set created by the bot.
+type SetStickerSetTitleConfig struct {
+	Name  string
+	Title string
+}
+
+func (config SetStickerSetTitleConfig) method() string {
+	return "setStickerSetTitle"
+}
+
+func (config SetStickerSetTitleConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["name"] = config.Name
+	params["title"] = config.Title
+
+	return params, nil
+}
+
+// DeleteStickerSetConfig deletes a sticker set created by the bot.
+type DeleteStickerSetConfig struct {
+	Name string
+}
+
+func (config DeleteStickerSetConfig) method() string {
+	return "deleteStickerSet"
+}
+
+func (config DeleteStickerSetConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["name"] = config.Name
+
+	return params, nil
+}
+
+// SetStickerEmojiListConfig changes the list of emoji assigned to a regular
+// or custom emoji sticker. The sticker must belong to a sticker set created
+// by the bot.
+type SetStickerEmojiListConfig struct {
+	Sticker   string // file identifier of the sticker
+	EmojiList []string
+}
+
+func (config SetStickerEmojiListConfig) method() string {
+	return "setStickerEmojiList"
+}
+
+func (config SetStickerEmojiListConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["sticker"] = config.Sticker
+	err := params.AddAny("emoji_list", config.EmojiList)
+
+	return params, err
+}
+
+// SetStickerKeywordsConfig changes the search keywords assigned to a regular
+// or custom emoji sticker. The sticker must belong to a sticker set created
+// by the bot.
+type SetStickerKeywordsConfig struct {
+	Sticker  string // file identifier of the sticker
+	Keywords []string
+}
+
+func (config SetStickerKeywordsConfig) method() string {
+	return "setStickerKeywords"
+}
+
+func (config SetStickerKeywordsConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["sticker"] = config.Sticker
+	err := params.AddAny("keywords", config.Keywords)
+
+	return params, err
+}
+
+// SetStickerMaskPositionConfig changes the mask position of a mask sticker.
+// The sticker must belong to a sticker set created by the bot.
+type SetStickerMaskPositionConfig struct {
+	Sticker      string // file identifier of the sticker
+	MaskPosition *MaskPosition
+}
+
+func (config SetStickerMaskPositionConfig) method() string {
+	return "setStickerMaskPosition"
+}
+
+func (config SetStickerMaskPositionConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["sticker"] = config.Sticker
+	err := params.AddAny("mask_position", config.MaskPosition)
+
+	return params, err
 }
 
 // SetChatStickerSetConfig allows you to set the sticker set for a supergroup.
@@ -2698,6 +2836,83 @@ func (config DeleteMyCommandsConfig) params() (Params, error) {
 	return params, err
 }
 
+// SetMyDescriptionConfig changes the bot's description, which is shown in the
+// chat with the bot if the chat is empty.
+type SetMyDescriptionConfig struct {
+	Description  string
+	LanguageCode string
+}
+
+func (config SetMyDescriptionConfig) method() string {
+	return "setMyDescription"
+}
+
+func (config SetMyDescriptionConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonEmpty("description", config.Description)
+	params.AddNonEmpty("language_code", config.LanguageCode)
+
+	return params, nil
+}
+
+// GetMyDescriptionConfig returns the current bot description for the given
+// user language.
+type GetMyDescriptionConfig struct {
+	LanguageCode string
+}
+
+func (config GetMyDescriptionConfig) method() string {
+	return "getMyDescription"
+}
+
+func (config GetMyDescriptionConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonEmpty("language_code", config.LanguageCode)
+
+	return params, nil
+}
+
+// SetMyShortDescriptionConfig changes the bot's short description, which is
+// shown on the bot's profile page and is sent together with the link when
+// users share the bot.
+type SetMyShortDescriptionConfig struct {
+	ShortDescription string
+	LanguageCode     string
+}
+
+func (config SetMyShortDescriptionConfig) method() string {
+	return "setMyShortDescription"
+}
+
+func (config SetMyShortDescriptionConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonEmpty("short_description", config.ShortDescription)
+	params.AddNonEmpty("language_code", config.LanguageCode)
+
+	return params, nil
+}
+
+// GetMyShortDescriptionConfig returns the current bot short description for
+// the given user language.
+type GetMyShortDescriptionConfig struct {
+	LanguageCode string
+}
+
+func (config GetMyShortDescriptionConfig) method() string {
+	return "getMyShortDescription"
+}
+
+func (config GetMyShortDescriptionConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonEmpty("language_code", config.LanguageCode)
+
+	return params, nil
+}
+
 // SetChatMenuButtonConfig changes the bot's menu button in a private chat,
 // or the default menu button.
 type SetChatMenuButtonConfig struct {
@@ -2854,8 +3069,8 @@ func prepareInputMediaParam(inputMedia interface{}, idx int) interface{} {
 			m.Media = fileAttach(fmt.Sprintf("attach://file-%d", idx))
 		}
 
-		if m.Thumb != nil && m.Thumb.NeedsUpload() {
-			m.Thumb = fileAttach(fmt.Sprintf("attach://file-%d-thumb", idx))
+		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
+			m.Thumbnail = fileAttach(fmt.Sprintf("attach://file-%d-thumbnail", idx))
 		}
 
 		return m
@@ -2864,8 +3079,8 @@ func prepareInputMediaParam(inputMedia interface{}, idx int) interface{} {
 			m.Media = fileAttach(fmt.Sprintf("attach://file-%d", idx))
 		}
 
-		if m.Thumb != nil && m.Thumb.NeedsUpload() {
-			m.Thumb = fileAttach(fmt.Sprintf("attach://file-%d-thumb", idx))
+		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
+			m.Thumbnail = fileAttach(fmt.Sprintf("attach://file-%d-thumbnail", idx))
 		}
 
 		return m
@@ -2874,8 +3089,8 @@ func prepareInputMediaParam(inputMedia interface{}, idx int) interface{} {
 			m.Media = fileAttach(fmt.Sprintf("attach://file-%d", idx))
 		}
 
-		if m.Thumb != nil && m.Thumb.NeedsUpload() {
-			m.Thumb = fileAttach(fmt.Sprintf("attach://file-%d-thumb", idx))
+		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
+			m.Thumbnail = fileAttach(fmt.Sprintf("attach://file-%d-thumbnail", idx))
 		}
 
 		return m
@@ -2911,10 +3126,10 @@ func prepareInputMediaFile(inputMedia interface{}, idx int) []RequestFile {
 			})
 		}
 
-		if m.Thumb != nil && m.Thumb.NeedsUpload() {
+		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
 			files = append(files, RequestFile{
 				Name: fmt.Sprintf("file-%d", idx),
-				Data: m.Thumb,
+				Data: m.Thumbnail,
 			})
 		}
 	case InputMediaDocument:
@@ -2925,10 +3140,10 @@ func prepareInputMediaFile(inputMedia interface{}, idx int) []RequestFile {
 			})
 		}
 
-		if m.Thumb != nil && m.Thumb.NeedsUpload() {
+		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
 			files = append(files, RequestFile{
 				Name: fmt.Sprintf("file-%d", idx),
-				Data: m.Thumb,
+				Data: m.Thumbnail,
 			})
 		}
 	case InputMediaAudio:
@@ -2939,10 +3154,10 @@ func prepareInputMediaFile(inputMedia interface{}, idx int) []RequestFile {
 			})
 		}
 
-		if m.Thumb != nil && m.Thumb.NeedsUpload() {
+		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
 			files = append(files, RequestFile{
 				Name: fmt.Sprintf("file-%d", idx),
-				Data: m.Thumb,
+				Data: m.Thumbnail,
 			})
 		}
 	}

@@ -246,11 +246,11 @@ func TestSendWithNewDocument(t *testing.T) {
 	}
 }
 
-func TestSendWithNewDocumentAndThumb(t *testing.T) {
+func TestSendWithNewDocumentAndThumbnail(t *testing.T) {
 	bot, _ := getBot(t)
 
 	msg := NewDocument(ChatID, FilePath("tests/voice.ogg"))
-	msg.Thumb = FilePath("tests/image.jpg")
+	msg.Thumbnail = FilePath("tests/image.jpg")
 	_, err := bot.Send(msg)
 
 	if err != nil {

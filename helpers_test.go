@@ -94,13 +94,13 @@ func TestNewInlineQueryResultPhoto(t *testing.T) {
 	}
 }
 
-func TestNewInlineQueryResultPhotoWithThumb(t *testing.T) {
-	result := NewInlineQueryResultPhotoWithThumb("id", "google.com", "thumb.com")
+func TestNewInlineQueryResultPhotoWithThumbnail(t *testing.T) {
+	result := NewInlineQueryResultPhotoWithThumbnail("id", "google.com", "thumbnail.com")
 
 	if result.Type != "photo" ||
 		result.ID != "id" ||
 		result.URL != "google.com" ||
-		result.ThumbURL != "thumb.com" {
+		result.ThumbnailURL != "thumbnail.com" {
 		t.Fail()
 	}
 }
