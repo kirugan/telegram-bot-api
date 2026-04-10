@@ -2,6 +2,7 @@ package tgbotapi
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/url"
@@ -1170,6 +1171,7 @@ type WebhookConfig struct {
 	MaxConnections     int
 	AllowedUpdates     []string
 	DropPendingUpdates bool
+	SecretToken        string
 }
 
 func (config WebhookConfig) method() string {
@@ -1187,6 +1189,7 @@ func (config WebhookConfig) params() (Params, error) {
 	params.AddNonZero("max_connections", config.MaxConnections)
 	err := params.AddInterface("allowed_updates", config.AllowedUpdates)
 	params.AddBool("drop_pending_updates", config.DropPendingUpdates)
+	params.AddNonEmpty("secret_token", config.SecretToken)
 
 	return params, err
 }
@@ -1738,7 +1741,7 @@ type InvoiceConfig struct {
 	MaxTipAmount              int
 	SuggestedTipAmounts       []int
 	StartParameter            string
-	ProviderData              string
+	ProviderData              json.RawMessage
 	PhotoURL                  string
 	PhotoSize                 int
 	PhotoWidth                int
@@ -1770,7 +1773,9 @@ func (config InvoiceConfig) params() (Params, error) {
 	params.AddNonZero("max_tip_amount", config.MaxTipAmount)
 	err = params.AddInterface("suggested_tip_amounts", config.SuggestedTipAmounts)
 	params.AddNonEmpty("start_parameter", config.StartParameter)
-	params.AddNonEmpty("provider_data", config.ProviderData)
+	if len(config.ProviderData) > 0 {
+		params["provider_data"] = string(config.ProviderData)
+	}
 	params.AddNonEmpty("photo_url", config.PhotoURL)
 	params.AddNonZero("photo_size", config.PhotoSize)
 	params.AddNonZero("photo_width", config.PhotoWidth)
@@ -1788,6 +1793,68 @@ func (config InvoiceConfig) params() (Params, error) {
 
 func (config InvoiceConfig) method() string {
 	return "sendInvoice"
+}
+
+// InvoiceLinkConfig contains information for createInvoiceLink request.
+type InvoiceLinkConfig struct {
+	Title                     string         // required
+	Description               string         // required
+	Payload                   string         // required
+	ProviderToken             string         // required
+	Currency                  string         // required
+	Prices                    []LabeledPrice // required
+	MaxTipAmount              int
+	SuggestedTipAmounts       []int
+	ProviderData              json.RawMessage
+	PhotoURL                  string
+	PhotoSize                 int
+	PhotoWidth                int
+	PhotoHeight               int
+	NeedName                  bool
+	NeedPhoneNumber           bool
+	NeedEmail                 bool
+	NeedShippingAddress       bool
+	SendPhoneNumberToProvider bool
+	SendEmailToProvider       bool
+	IsFlexible                bool
+}
+
+func (config InvoiceLinkConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["title"] = config.Title
+	params["description"] = config.Description
+	params["payload"] = config.Payload
+	params["provider_token"] = config.ProviderToken
+	params["currency"] = config.Currency
+	if err := params.AddInterface("prices", config.Prices); err != nil {
+		return params, err
+	}
+
+	params.AddNonZero("max_tip_amount", config.MaxTipAmount)
+	if err := params.AddInterface("suggested_tip_amounts", config.SuggestedTipAmounts); err != nil {
+		return params, err
+	}
+	if len(config.ProviderData) > 0 {
+		params["provider_data"] = string(config.ProviderData)
+	}
+	params.AddNonEmpty("photo_url", config.PhotoURL)
+	params.AddNonZero("photo_size", config.PhotoSize)
+	params.AddNonZero("photo_width", config.PhotoWidth)
+	params.AddNonZero("photo_height", config.PhotoHeight)
+	params.AddBool("need_name", config.NeedName)
+	params.AddBool("need_phone_number", config.NeedPhoneNumber)
+	params.AddBool("need_email", config.NeedEmail)
+	params.AddBool("need_shipping_address", config.NeedShippingAddress)
+	params.AddBool("send_phone_number_to_provider", config.SendPhoneNumberToProvider)
+	params.AddBool("send_email_to_provider", config.SendEmailToProvider)
+	params.AddBool("is_flexible", config.IsFlexible)
+
+	return params, nil
+}
+
+func (config InvoiceLinkConfig) method() string {
+	return "createInvoiceLink"
 }
 
 // ShippingConfig contains information for answerShippingQuery request.
