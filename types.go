@@ -299,6 +299,12 @@ type Chat struct {
 	//
 	// optional
 	HasPrivateForwards bool `json:"has_private_forwards,omitempty"`
+	// HasRestrictedVoiceAndVideoMessages is true, if the privacy settings of the
+	// other party restrict sending voice and video note messages in the private
+	// chat. Returned only in getChat.
+	//
+	// optional
+	HasRestrictedVoiceAndVideoMessages bool `json:"has_restricted_voice_and_video_messages,omitempty"`
 	// Description for groups, supergroups and channel chats
 	//
 	// optional
@@ -773,7 +779,8 @@ type MessageEntity struct {
 	//  “code” (monowidth string),
 	//  “pre” (monowidth block),
 	//  “text_link” (for clickable text URLs),
-	//  “text_mention” (for users without usernames)
+	//  “text_mention” (for users without usernames),
+	//  “custom_emoji” (for inline custom emoji stickers)
 	Type string `json:"type"`
 	// Offset in UTF-16 code units to the start of the entity
 	Offset int `json:"offset"`
@@ -791,6 +798,11 @@ type MessageEntity struct {
 	//
 	// optional
 	Language string `json:"language,omitempty"`
+	// CustomEmojiID for "custom_emoji" only, unique identifier of the custom emoji.
+	// Use getCustomEmojiStickers to get full information about the sticker.
+	//
+	// optional
+	CustomEmojiID string `json:"custom_emoji_id,omitempty"`
 }
 
 // ParseURL attempts to parse a URL contained within a MessageEntity.
@@ -2076,6 +2088,13 @@ type InputMediaDocument struct {
 	DisableContentTypeDetection bool `json:"disable_content_type_detection,omitempty"`
 }
 
+// Sticker type constants.
+const (
+	StickerTypeRegular     = "regular"
+	StickerTypeMask        = "mask"
+	StickerTypeCustomEmoji = "custom_emoji"
+)
+
 // Sticker represents a sticker.
 type Sticker struct {
 	// FileID is an identifier for this file, which can be used to download or
@@ -2085,6 +2104,10 @@ type Sticker struct {
 	// which is supposed to be the same over time and for different bots.
 	// Can't be used to download or reuse the file.
 	FileUniqueID string `json:"file_unique_id"`
+	// Type of the sticker, currently one of "regular", "mask", "custom_emoji".
+	// The type of the sticker is independent from its format,
+	// which is determined by the fields IsAnimated and IsVideo.
+	Type string `json:"type"`
 	// Width sticker width
 	Width int `json:"width"`
 	// Height sticker height
@@ -2140,8 +2163,6 @@ type StickerSet struct {
 	IsAnimated bool `json:"is_animated"`
 	// IsVideo true, if the sticker set contains video stickers
 	IsVideo bool `json:"is_video"`
-	// ContainsMasks true, if the sticker set contains masks
-	ContainsMasks bool `json:"contains_masks"`
 	// Stickers list of all set stickers
 	Stickers []Sticker `json:"stickers"`
 	// Thumb is the sticker set thumbnail in the .WEBP or .TGS format
