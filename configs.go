@@ -271,6 +271,7 @@ func (CloseConfig) params() (Params, error) {
 type BaseChat struct {
 	ChatID                   int64 // required
 	ChannelUsername          string
+	MessageThreadID          int
 	MessageEffectID          string
 	ProtectContent           bool
 	ReplyToMessageID         int
@@ -283,6 +284,7 @@ func (chat *BaseChat) params() (Params, error) {
 	params := make(Params)
 
 	params.AddFirstValid("chat_id", chat.ChatID, chat.ChannelUsername)
+	params.AddNonZero("message_thread_id", chat.MessageThreadID)
 	params.AddNonEmpty("message_effect_id", chat.MessageEffectID)
 	params.AddNonZero("reply_to_message_id", chat.ReplyToMessageID)
 	params.AddBool("disable_notification", chat.DisableNotification)
@@ -1392,6 +1394,7 @@ type PromoteChatMemberConfig struct {
 	CanRestrictMembers  bool
 	CanPinMessages      bool
 	CanPromoteMembers   bool
+	CanManageTopics     bool
 }
 
 func (config PromoteChatMemberConfig) method() string {
@@ -1415,6 +1418,7 @@ func (config PromoteChatMemberConfig) params() (Params, error) {
 	params.AddBool("can_restrict_members", config.CanRestrictMembers)
 	params.AddBool("can_pin_messages", config.CanPinMessages)
 	params.AddBool("can_promote_members", config.CanPromoteMembers)
+	params.AddBool("can_manage_topics", config.CanManageTopics)
 
 	return params, nil
 }
@@ -1984,6 +1988,159 @@ func (config UnpinAllChatMessagesConfig) params() (Params, error) {
 	return params, nil
 }
 
+// CreateForumTopicConfig creates a topic in a forum supergroup chat.
+// The bot must have the can_manage_topics administrator rights.
+// Returns information about the created topic as a ForumTopic object.
+type CreateForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+	Name               string // required, 1-128 characters
+	IconColor          int
+	IconCustomEmojiID  string
+}
+
+func (config CreateForumTopicConfig) method() string {
+	return "createForumTopic"
+}
+
+func (config CreateForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	params["name"] = config.Name
+	params.AddNonZero("icon_color", config.IconColor)
+	params.AddNonEmpty("icon_custom_emoji_id", config.IconCustomEmojiID)
+
+	return params, nil
+}
+
+// EditForumTopicConfig edits the name and icon of a topic in a forum
+// supergroup chat. The bot must have the can_manage_topics administrator
+// rights, unless it is the creator of the topic.
+type EditForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+	MessageThreadID    int // required
+	Name               string
+	IconCustomEmojiID  string
+}
+
+func (config EditForumTopicConfig) method() string {
+	return "editForumTopic"
+}
+
+func (config EditForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
+	params.AddNonEmpty("name", config.Name)
+	params.AddNonEmpty("icon_custom_emoji_id", config.IconCustomEmojiID)
+
+	return params, nil
+}
+
+// CloseForumTopicConfig closes an open topic in a forum supergroup chat.
+// The bot must have the can_manage_topics administrator rights, unless it
+// is the creator of the topic.
+type CloseForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+	MessageThreadID    int // required
+}
+
+func (config CloseForumTopicConfig) method() string {
+	return "closeForumTopic"
+}
+
+func (config CloseForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
+
+	return params, nil
+}
+
+// ReopenForumTopicConfig reopens a closed topic in a forum supergroup chat.
+// The bot must have the can_manage_topics administrator rights, unless it
+// is the creator of the topic.
+type ReopenForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+	MessageThreadID    int // required
+}
+
+func (config ReopenForumTopicConfig) method() string {
+	return "reopenForumTopic"
+}
+
+func (config ReopenForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
+
+	return params, nil
+}
+
+// DeleteForumTopicConfig deletes a forum topic along with all its messages
+// in a forum supergroup chat. The bot must have the can_delete_messages
+// administrator rights.
+type DeleteForumTopicConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+	MessageThreadID    int // required
+}
+
+func (config DeleteForumTopicConfig) method() string {
+	return "deleteForumTopic"
+}
+
+func (config DeleteForumTopicConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
+
+	return params, nil
+}
+
+// UnpinAllForumTopicMessagesConfig clears the list of pinned messages in a
+// forum topic. The bot must have the can_pin_messages administrator right
+// in the supergroup.
+type UnpinAllForumTopicMessagesConfig struct {
+	ChatID             int64
+	SuperGroupUsername string
+	MessageThreadID    int // required
+}
+
+func (config UnpinAllForumTopicMessagesConfig) method() string {
+	return "unpinAllForumTopicMessages"
+}
+
+func (config UnpinAllForumTopicMessagesConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
+
+	return params, nil
+}
+
+// GetForumTopicIconStickersConfig gets custom emoji stickers, which can be
+// used as a forum topic icon by any user. Requires no parameters.
+// Returns an Array of Sticker objects.
+type GetForumTopicIconStickersConfig struct{}
+
+func (config GetForumTopicIconStickersConfig) method() string {
+	return "getForumTopicIconStickers"
+}
+
+func (config GetForumTopicIconStickersConfig) params() (Params, error) {
+	return make(Params), nil
+}
+
 // SetChatPhotoConfig allows you to set a group, supergroup, or channel's photo.
 type SetChatPhotoConfig struct {
 	BaseFile
@@ -2317,6 +2474,7 @@ func (config DeleteChatStickerSetConfig) params() (Params, error) {
 type MediaGroupConfig struct {
 	ChatID          int64
 	ChannelUsername string
+	MessageThreadID int
 
 	Media               []interface{}
 	DisableNotification bool
@@ -2331,6 +2489,7 @@ func (config MediaGroupConfig) params() (Params, error) {
 	params := make(Params)
 
 	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
 	params.AddBool("disable_notification", config.DisableNotification)
 	params.AddNonZero("reply_to_message_id", config.ReplyToMessageID)
 

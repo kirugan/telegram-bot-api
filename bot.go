@@ -659,6 +659,34 @@ func (bot *BotAPI) GetCustomEmojiStickers(config GetCustomEmojiStickersConfig) (
 	return stickers, err
 }
 
+// CreateForumTopic creates a topic in a forum supergroup chat and returns
+// information about the created topic.
+func (bot *BotAPI) CreateForumTopic(config CreateForumTopicConfig) (ForumTopic, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return ForumTopic{}, err
+	}
+
+	var topic ForumTopic
+	err = json.Unmarshal(resp.Result, &topic)
+
+	return topic, err
+}
+
+// GetForumTopicIconStickers returns custom emoji stickers, which can be used
+// as a forum topic icon by any user.
+func (bot *BotAPI) GetForumTopicIconStickers() ([]Sticker, error) {
+	resp, err := bot.Request(GetForumTopicIconStickersConfig{})
+	if err != nil {
+		return nil, err
+	}
+
+	var stickers []Sticker
+	err = json.Unmarshal(resp.Result, &stickers)
+
+	return stickers, err
+}
+
 // StopPoll stops a poll and returns the result.
 func (bot *BotAPI) StopPoll(config StopPollConfig) (Poll, error) {
 	resp, err := bot.Request(config)
