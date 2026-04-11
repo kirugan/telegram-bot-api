@@ -208,9 +208,7 @@ func (ch UpdatesChannel) Clear() {
 type User struct {
 	// ID is a unique identifier for this user or bot
 	ID int64 `json:"id"`
-	// IsBot true, if this user is a bot
-	//
-	// optional
+	// IsBot is true if this user is a bot.
 	IsBot bool `json:"is_bot,omitempty"`
 	// IsPremium true, if user has Telegram Premium
 	//
@@ -751,10 +749,10 @@ type Message struct {
 	//
 	// optional
 	WebAppData *WebAppData `json:"web_app_data,omitempty"`
-	// UserShared is a service message: a user was shared with the bot.
+	// UsersShared is a service message: users were shared with the bot.
 	//
 	// optional
-	UserShared *UserShared `json:"user_shared,omitempty"`
+	UsersShared *UsersShared `json:"users_shared,omitempty"`
 	// ChatShared is a service message: a chat was shared with the bot.
 	//
 	// optional
@@ -1513,12 +1511,12 @@ type KeyboardButton struct {
 	// Text of the button. If none of the optional fields are used,
 	// it will be sent as a message when the button is pressed.
 	Text string `json:"text"`
-	// RequestUser if specified, pressing the button will open a list of
-	// suitable users. Identifier of the selected user will be shared with the
-	// bot in a "user_shared" service message. Available in private chats only.
+	// RequestUsers if specified, pressing the button will open a list of
+	// suitable users. Identifiers of the selected users will be shared with the
+	// bot in a "users_shared" service message. Available in private chats only.
 	//
 	// optional
-	RequestUser *KeyboardButtonRequestUser `json:"request_user,omitempty"`
+	RequestUsers *KeyboardButtonRequestUsers `json:"request_users,omitempty"`
 	// RequestChat if specified, pressing the button will open a list of
 	// suitable chats. Tapping on a chat will send its identifier to the bot in
 	// a "chat_shared" service message. Available in private chats only.
@@ -1556,23 +1554,27 @@ type KeyboardButton struct {
 	RequestManagedBot *KeyboardButtonRequestManagedBot `json:"request_managed_bot,omitempty"`
 }
 
-// KeyboardButtonRequestUser defines the criteria used to request a suitable
-// user. The identifier of the selected user will be shared with the bot when
-// the corresponding button is pressed.
-type KeyboardButtonRequestUser struct {
+// KeyboardButtonRequestUsers defines the criteria used to request suitable
+// users. The identifiers of the selected users will be shared with the bot
+// when the corresponding button is pressed.
+type KeyboardButtonRequestUsers struct {
 	// RequestID is a signed 32-bit identifier of the request, which will be
-	// received back in the UserShared object. Must be unique within the message.
+	// received back in the UsersShared object. Must be unique within the message.
 	RequestID int `json:"request_id"`
-	// UserIsBot pass True to request a bot, pass False to request a regular
-	// user. If not specified, no additional restrictions are applied.
+	// UserIsBot pass True to request bots, pass False to request regular
+	// users. If not specified, no additional restrictions are applied.
 	//
 	// optional
 	UserIsBot *bool `json:"user_is_bot,omitempty"`
-	// UserIsPremium pass True to request a premium user, pass False to request
-	// a non-premium user. If not specified, no additional restrictions are applied.
+	// UserIsPremium pass True to request premium users, pass False to request
+	// non-premium users. If not specified, no additional restrictions are applied.
 	//
 	// optional
 	UserIsPremium *bool `json:"user_is_premium,omitempty"`
+	// MaxQuantity is the maximum number of users to be selected; 1-10. Defaults to 1.
+	//
+	// optional
+	MaxQuantity int `json:"max_quantity,omitempty"`
 }
 
 // KeyboardButtonRequestChat defines the criteria used to request a suitable
@@ -1620,13 +1622,13 @@ type KeyboardButtonRequestChat struct {
 	BotIsMember bool `json:"bot_is_member,omitempty"`
 }
 
-// UserShared contains information about the user whose identifier was shared
-// with the bot using a KeyboardButtonRequestUser button.
-type UserShared struct {
+// UsersShared contains information about the users whose identifiers were
+// shared with the bot using a KeyboardButtonRequestUsers button.
+type UsersShared struct {
 	// RequestID is the identifier of the request.
 	RequestID int `json:"request_id"`
-	// UserID is the identifier of the shared user.
-	UserID int64 `json:"user_id"`
+	// UserIDs are the identifiers of the shared users.
+	UserIDs []int64 `json:"user_ids"`
 }
 
 // ChatShared contains information about the chat whose identifier was shared
