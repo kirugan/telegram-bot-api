@@ -266,6 +266,11 @@ type User struct {
 	//
 	// optional
 	HasTopicsEnabled bool `json:"has_topics_enabled,omitempty"`
+	// AllowsUsersToCreateTopics is true, if users can create forum topics
+	// in the private chat with the bot.
+	//
+	// optional
+	AllowsUsersToCreateTopics bool `json:"allows_users_to_create_topics,omitempty"`
 	// FirstName user's or bot's first name
 	FirstName string `json:"first_name"`
 	// LastName user's or bot's last name
@@ -596,6 +601,10 @@ type ChatFullInfo struct {
 	//
 	// optional
 	UniqueGiftColors *UniqueGiftColors `json:"unique_gift_colors,omitempty"`
+	// FirstProfileAudio is the first audio on the user profile.
+	//
+	// optional
+	FirstProfileAudio *Audio `json:"first_profile_audio,omitempty"`
 }
 
 // Message represents a message.
@@ -990,6 +999,15 @@ type Message struct {
 	//
 	// optional
 	GiftUpgradeSent *GiftInfo `json:"gift_upgrade_sent,omitempty"`
+	// ChatOwnerLeft is a service message about the owner leaving the chat.
+	//
+	// optional
+	ChatOwnerLeft *ChatOwnerLeft `json:"chat_owner_left,omitempty"`
+	// ChatOwnerChanged is a service message about a change of the chat
+	// owner.
+	//
+	// optional
+	ChatOwnerChanged *ChatOwnerChanged `json:"chat_owner_changed,omitempty"`
 	// PaidMessagePriceChanged is a service message about a change in the
 	// price of paid messages within the chat.
 	//
@@ -1429,6 +1447,10 @@ type Video struct {
 	//
 	// optional
 	StartTimestamp int `json:"start_timestamp,omitempty"`
+	// Qualities lists the other available qualities of this video.
+	//
+	// optional
+	Qualities []VideoQuality `json:"qualities,omitempty"`
 	// FileName is the original filename as defined by sender
 	//
 	// optional
@@ -1869,6 +1891,17 @@ type KeyboardButton struct {
 	//
 	// optional
 	RequestManagedBot *KeyboardButtonRequestManagedBot `json:"request_managed_bot,omitempty"`
+	// IconCustomEmojiID is the unique identifier of the custom emoji to be
+	// displayed on the button. Available only if the bot can use custom
+	// emoji in the message.
+	//
+	// optional
+	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
+	// Style of the button. Currently, one of "default", "primary",
+	// "destructive". Defaults to "default".
+	//
+	// optional
+	Style string `json:"style,omitempty"`
 }
 
 // KeyboardButtonRequestUsers defines the criteria used to request suitable
@@ -2114,6 +2147,17 @@ type InlineKeyboardButton struct {
 	//
 	// optional
 	CopyText *CopyTextButton `json:"copy_text,omitempty"`
+	// IconCustomEmojiID is the unique identifier of the custom emoji to be
+	// displayed on the button. Available only if the bot can use custom
+	// emoji in the message.
+	//
+	// optional
+	IconCustomEmojiID string `json:"icon_custom_emoji_id,omitempty"`
+	// Style of the button. Currently, one of "default", "primary",
+	// "destructive". Defaults to "default".
+	//
+	// optional
+	Style string `json:"style,omitempty"`
 	// CallbackGame description of the game that will be launched when the user presses the button.
 	//
 	// optional
@@ -2665,6 +2709,61 @@ type Story struct {
 	Chat Chat `json:"chat"`
 	// ID is the unique identifier of the story in the chat.
 	ID int `json:"id"`
+}
+
+// ChatOwnerLeft represents a service message about the owner leaving the chat.
+// Currently holds no information.
+type ChatOwnerLeft struct{}
+
+// ChatOwnerChanged represents a service message about a change of the chat
+// owner.
+type ChatOwnerChanged struct {
+	// NewOwner is the new owner of the chat.
+	NewOwner User `json:"new_owner"`
+}
+
+// VideoQuality describes an available quality variant for a video.
+//
+// Note: the exact field layout of this type is not fully verified. When
+// serializing or deserializing you may need to use the Raw payload.
+type VideoQuality struct {
+	Raw json.RawMessage `json:"-"`
+}
+
+// UnmarshalJSON preserves the raw JSON payload for VideoQuality.
+func (v *VideoQuality) UnmarshalJSON(b []byte) error {
+	v.Raw = append(v.Raw[:0], b...)
+	return nil
+}
+
+// MarshalJSON emits the raw JSON payload, or `null` if unset.
+func (v VideoQuality) MarshalJSON() ([]byte, error) {
+	if len(v.Raw) == 0 {
+		return []byte("null"), nil
+	}
+	return v.Raw, nil
+}
+
+// UserProfileAudios describes the audios posted to a user's profile.
+//
+// Note: the exact field layout of this type is not fully verified. When
+// serializing or deserializing you may need to use the Raw payload.
+type UserProfileAudios struct {
+	Raw json.RawMessage `json:"-"`
+}
+
+// UnmarshalJSON preserves the raw JSON payload for UserProfileAudios.
+func (u *UserProfileAudios) UnmarshalJSON(b []byte) error {
+	u.Raw = append(u.Raw[:0], b...)
+	return nil
+}
+
+// MarshalJSON emits the raw JSON payload, or `null` if unset.
+func (u UserProfileAudios) MarshalJSON() ([]byte, error) {
+	if len(u.Raw) == 0 {
+		return []byte("null"), nil
+	}
+	return u.Raw, nil
 }
 
 // ChatBoostAdded represents a service message about a user boosting a chat.
@@ -3362,6 +3461,10 @@ type UniqueGiftModel struct {
 	// RarityPerMille is the number of unique gifts that receive this model
 	// for every 1000 gifts upgraded.
 	RarityPerMille int `json:"rarity_per_mille"`
+	// Rarity is a human-readable name for the rarity of the model.
+	//
+	// optional
+	Rarity string `json:"rarity,omitempty"`
 }
 
 // UniqueGiftSymbol describes the symbol shown on the pattern of a unique gift.
@@ -3418,6 +3521,10 @@ type UniqueGift struct {
 	//
 	// optional
 	IsFromBlockchain bool `json:"is_from_blockchain,omitempty"`
+	// IsBurned is true, if the gift was burned by the owner.
+	//
+	// optional
+	IsBurned bool `json:"is_burned,omitempty"`
 	// IsPremium is true, if the gift can only be owned by users with an
 	// active Telegram Premium subscription.
 	//

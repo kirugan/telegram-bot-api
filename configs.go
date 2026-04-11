@@ -3719,6 +3719,60 @@ func (config GetMyNameConfig) params() (Params, error) {
 	return params, nil
 }
 
+// SetMyProfilePhotoConfig changes the profile photo of the bot.
+type SetMyProfilePhotoConfig struct {
+	Photo InputProfilePhoto
+}
+
+func (SetMyProfilePhotoConfig) method() string {
+	return "setMyProfilePhoto"
+}
+
+func (config SetMyProfilePhotoConfig) params() (Params, error) {
+	params := make(Params)
+
+	err := params.AddAny("photo", prepareInputProfilePhotoForParams(config.Photo))
+
+	return params, err
+}
+
+func (config SetMyProfilePhotoConfig) files() []RequestFile {
+	return prepareInputProfilePhotoForFiles(config.Photo)
+}
+
+// RemoveMyProfilePhotoConfig removes the current profile photo of the bot.
+type RemoveMyProfilePhotoConfig struct{}
+
+func (RemoveMyProfilePhotoConfig) method() string {
+	return "removeMyProfilePhoto"
+}
+
+func (RemoveMyProfilePhotoConfig) params() (Params, error) {
+	return make(Params), nil
+}
+
+// GetUserProfileAudiosConfig fetches a list of audios added to the profile
+// of a user.
+type GetUserProfileAudiosConfig struct {
+	UserID int64
+	Offset int
+	Limit  int
+}
+
+func (GetUserProfileAudiosConfig) method() string {
+	return "getUserProfileAudios"
+}
+
+func (config GetUserProfileAudiosConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params.AddNonZero("offset", config.Offset)
+	params.AddNonZero("limit", config.Limit)
+
+	return params, nil
+}
+
 // SetMyDescriptionConfig changes the bot's description, which is shown in the
 // chat with the bot if the chat is empty.
 type SetMyDescriptionConfig struct {

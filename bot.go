@@ -777,6 +777,20 @@ func (bot *BotAPI) GetStarTransactions(config GetStarTransactionsConfig) (StarTr
 	return st, err
 }
 
+// GetUserProfileAudios fetches a list of audios added to the profile of
+// a user.
+func (bot *BotAPI) GetUserProfileAudios(config GetUserProfileAudiosConfig) (UserProfileAudios, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return UserProfileAudios{}, err
+	}
+
+	var audios UserProfileAudios
+	err = json.Unmarshal(resp.Result, &audios)
+
+	return audios, err
+}
+
 // GetMyStarBalance returns the current Telegram Stars balance of the bot.
 func (bot *BotAPI) GetMyStarBalance() (StarAmount, error) {
 	resp, err := bot.Request(GetMyStarBalanceConfig{})
