@@ -687,6 +687,19 @@ func (bot *BotAPI) GetForumTopicIconStickers() ([]Sticker, error) {
 	return stickers, err
 }
 
+// GetUserChatBoosts returns the list of boosts added to a chat by a user.
+func (bot *BotAPI) GetUserChatBoosts(config GetUserChatBoostsConfig) (UserChatBoosts, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return UserChatBoosts{}, err
+	}
+
+	var boosts UserChatBoosts
+	err = json.Unmarshal(resp.Result, &boosts)
+
+	return boosts, err
+}
+
 // ForwardMessages forwards multiple messages of any kind and returns the
 // identifiers of the sent messages.
 func (bot *BotAPI) ForwardMessages(config ForwardMessagesConfig) ([]MessageID, error) {

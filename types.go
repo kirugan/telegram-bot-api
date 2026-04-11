@@ -118,6 +118,16 @@ type Update struct {
 	//
 	// optional
 	MessageReactionCount *MessageReactionCountUpdated `json:"message_reaction_count,omitempty"`
+	// ChatBoost is a boost added to a chat or changed. The bot must be an
+	// administrator in the chat to receive these updates.
+	//
+	// optional
+	ChatBoost *ChatBoostUpdated `json:"chat_boost,omitempty"`
+	// RemovedChatBoost is a boost removed from a chat. The bot must be an
+	// administrator in the chat to receive these updates.
+	//
+	// optional
+	RemovedChatBoost *ChatBoostRemoved `json:"removed_chat_boost,omitempty"`
 	// MyChatMember is the bot's chat member status was updated in a chat. For
 	// private chats, this update is received only when the bot is blocked or
 	// unblocked by the user.
@@ -2454,6 +2464,78 @@ type ExternalReplyInfo struct {
 	//
 	// optional
 	Venue *Venue `json:"venue,omitempty"`
+}
+
+// Chat boost source constants.
+const (
+	ChatBoostSourcePremium  = "premium"
+	ChatBoostSourceGiftCode = "gift_code"
+	ChatBoostSourceGiveaway = "giveaway"
+)
+
+// ChatBoostSource describes the source of a chat boost. The Source field
+// discriminates between concrete variants:
+//   - "premium"   → User is set (the user that boosted the chat)
+//   - "gift_code" → User is set (the user for which the gift code was created)
+//   - "giveaway"  → GiveawayMessageID is set; User is set for the prize winner;
+//     IsUnclaimed is true if the giveaway prize wasn't claimed
+type ChatBoostSource struct {
+	// Source of the boost. One of "premium", "gift_code", "giveaway".
+	Source string `json:"source"`
+	// User that boosted the chat. Set for "premium" and "gift_code"; for
+	// "giveaway" set to the user that won the prize, if any.
+	//
+	// optional
+	User *User `json:"user,omitempty"`
+	// GiveawayMessageID is the identifier of the message with the giveaway in
+	// the chat. Set for "giveaway".
+	//
+	// optional
+	GiveawayMessageID int `json:"giveaway_message_id,omitempty"`
+	// IsUnclaimed is true if the giveaway was completed but no user won the
+	// prize. Set for "giveaway".
+	//
+	// optional
+	IsUnclaimed bool `json:"is_unclaimed,omitempty"`
+}
+
+// ChatBoost contains information about a chat boost.
+type ChatBoost struct {
+	// BoostID is the unique identifier of the boost.
+	BoostID string `json:"boost_id"`
+	// AddDate is the point in time (Unix timestamp) when the chat was boosted.
+	AddDate int `json:"add_date"`
+	// ExpirationDate is the point in time (Unix timestamp) when the boost
+	// will automatically expire, unless it's renewed by the premium subscriber.
+	ExpirationDate int `json:"expiration_date"`
+	// Source of the added boost.
+	Source ChatBoostSource `json:"source"`
+}
+
+// ChatBoostUpdated represents a boost added to a chat or changed.
+type ChatBoostUpdated struct {
+	// Chat which was boosted.
+	Chat Chat `json:"chat"`
+	// Boost is information about the chat boost.
+	Boost ChatBoost `json:"boost"`
+}
+
+// ChatBoostRemoved represents a boost removed from a chat.
+type ChatBoostRemoved struct {
+	// Chat which was boosted.
+	Chat Chat `json:"chat"`
+	// BoostID is the unique identifier of the boost.
+	BoostID string `json:"boost_id"`
+	// RemoveDate is the point in time (Unix timestamp) when the boost was removed.
+	RemoveDate int `json:"remove_date"`
+	// Source of the removed boost.
+	Source ChatBoostSource `json:"source"`
+}
+
+// UserChatBoosts represents a list of boosts added to a chat by a user.
+type UserChatBoosts struct {
+	// Boosts is the list of boosts added to the chat by the user.
+	Boosts []ChatBoost `json:"boosts"`
 }
 
 // LinkPreviewOptions describes the options used for link preview generation.

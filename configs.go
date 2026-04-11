@@ -92,6 +92,12 @@ const (
 	// UpdateTypeMessageReactionCount is when reactions to a message with anonymous reactions were changed.
 	UpdateTypeMessageReactionCount = "message_reaction_count"
 
+	// UpdateTypeChatBoost is when a boost was added to a chat or changed.
+	UpdateTypeChatBoost = "chat_boost"
+
+	// UpdateTypeRemovedChatBoost is when a boost was removed from a chat.
+	UpdateTypeRemovedChatBoost = "removed_chat_boost"
+
 	// UpdateTypeMyChatMember is when the bot's chat member status was updated in a chat. For private chats, this
 	// update is received only when the bot is blocked or unblocked by the user.
 	UpdateTypeMyChatMember = "my_chat_member"
@@ -2085,6 +2091,33 @@ func (config SetMessageReactionConfig) params() (Params, error) {
 	err := params.AddAny("reaction", config.Reaction)
 
 	return params, err
+}
+
+// GetUserChatBoostsConfig returns the list of boosts added to a chat by a
+// user. The bot must be an administrator in the chat.
+//
+// Provide the target chat via either ChatID (numeric identifier) or
+// ChannelUsername ("@channelusername"); the first non-zero / non-empty
+// value is used.
+type GetUserChatBoostsConfig struct {
+	ChatID          int64
+	ChannelUsername string
+	UserID          int64
+}
+
+func (config GetUserChatBoostsConfig) method() string {
+	return "getUserChatBoosts"
+}
+
+func (config GetUserChatBoostsConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
+	params.AddNonZero64("user_id", config.UserID)
+
+	return params, nil
 }
 
 // PinChatMessageConfig contains information of a message in a chat to pin.
