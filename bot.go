@@ -732,6 +732,20 @@ func (bot *BotAPI) CopyMessages(config CopyMessagesConfig) ([]MessageID, error) 
 	return ids, err
 }
 
+// GetBusinessConnection returns information about the connection of the bot
+// with a business account.
+func (bot *BotAPI) GetBusinessConnection(config GetBusinessConnectionConfig) (BusinessConnection, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return BusinessConnection{}, err
+	}
+
+	var bc BusinessConnection
+	err = json.Unmarshal(resp.Result, &bc)
+
+	return bc, err
+}
+
 // GetMyName returns the current bot name for the given user language.
 func (bot *BotAPI) GetMyName(config GetMyNameConfig) (BotName, error) {
 	resp, err := bot.Request(config)

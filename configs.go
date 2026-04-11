@@ -98,6 +98,23 @@ const (
 	// UpdateTypeRemovedChatBoost is when a boost was removed from a chat.
 	UpdateTypeRemovedChatBoost = "removed_chat_boost"
 
+	// UpdateTypeBusinessConnection is when the bot was connected to or
+	// disconnected from a business account, or a user edited an existing
+	// connection with the bot.
+	UpdateTypeBusinessConnection = "business_connection"
+
+	// UpdateTypeBusinessMessage is a new non-service message from a connected
+	// business account.
+	UpdateTypeBusinessMessage = "business_message"
+
+	// UpdateTypeEditedBusinessMessage is a new version of a message from a
+	// connected business account.
+	UpdateTypeEditedBusinessMessage = "edited_business_message"
+
+	// UpdateTypeDeletedBusinessMessages is when messages were deleted from a
+	// connected business account.
+	UpdateTypeDeletedBusinessMessages = "deleted_business_messages"
+
 	// UpdateTypeMyChatMember is when the bot's chat member status was updated in a chat. For private chats, this
 	// update is received only when the bot is blocked or unblocked by the user.
 	UpdateTypeMyChatMember = "my_chat_member"
@@ -281,14 +298,15 @@ func (CloseConfig) params() (Params, error) {
 
 // BaseChat is base type for all chat config types.
 type BaseChat struct {
-	ChatID              int64 // required
-	ChannelUsername     string
-	MessageThreadID     int
-	MessageEffectID     string
-	ProtectContent      bool
-	ReplyParameters     *ReplyParameters
-	ReplyMarkup         interface{}
-	DisableNotification bool
+	ChatID               int64 // required
+	ChannelUsername      string
+	BusinessConnectionID string
+	MessageThreadID      int
+	MessageEffectID      string
+	ProtectContent       bool
+	ReplyParameters      *ReplyParameters
+	ReplyMarkup          interface{}
+	DisableNotification  bool
 }
 
 func (chat *BaseChat) params() (Params, error) {
@@ -297,6 +315,7 @@ func (chat *BaseChat) params() (Params, error) {
 	if err := params.AddFirstValid("chat_id", chat.ChatID, chat.ChannelUsername); err != nil {
 		return params, err
 	}
+	params.AddNonEmpty("business_connection_id", chat.BusinessConnectionID)
 	params.AddNonZero("message_thread_id", chat.MessageThreadID)
 	params.AddNonEmpty("message_effect_id", chat.MessageEffectID)
 	params.AddBool("disable_notification", chat.DisableNotification)
@@ -2675,12 +2694,14 @@ func (config UploadStickerConfig) files() []RequestFile {
 }
 
 // NewStickerSetConfig creates a new sticker set owned by a user.
+//
+// Each sticker's format is specified on the InputSticker itself via its
+// Format field, allowing mixed-format sticker packs.
 type NewStickerSetConfig struct {
 	UserID          int64
 	Name            string
 	Title           string
 	Stickers        []InputSticker
-	StickerFormat   string // one of StickerFormatStatic, StickerFormatAnimated, StickerFormatVideo
 	StickerType     string // one of StickerTypeRegular, StickerTypeMask, StickerTypeCustomEmoji
 	NeedsRepainting bool
 }
@@ -2695,7 +2716,6 @@ func (config NewStickerSetConfig) params() (Params, error) {
 	params.AddNonZero64("user_id", config.UserID)
 	params["name"] = config.Name
 	params["title"] = config.Title
-	params.AddNonEmpty("sticker_format", config.StickerFormat)
 	params.AddNonEmpty("sticker_type", config.StickerType)
 	params.AddBool("needs_repainting", config.NeedsRepainting)
 
@@ -2951,6 +2971,35 @@ func (config SetStickerMaskPositionConfig) params() (Params, error) {
 	err := params.AddAny("mask_position", config.MaskPosition)
 
 	return params, err
+}
+
+// ReplaceStickerInSetConfig replaces an existing sticker in a sticker set
+// with a new one. The sticker set must have been created by the bot.
+type ReplaceStickerInSetConfig struct {
+	UserID     int64
+	Name       string
+	OldSticker string // file identifier of the replaced sticker
+	Sticker    InputSticker
+}
+
+func (config ReplaceStickerInSetConfig) method() string {
+	return "replaceStickerInSet"
+}
+
+func (config ReplaceStickerInSetConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params["name"] = config.Name
+	params["old_sticker"] = config.OldSticker
+
+	err := params.AddAny("sticker", prepareInputStickerForParams(config.Sticker, 0))
+
+	return params, err
+}
+
+func (config ReplaceStickerInSetConfig) files() []RequestFile {
+	return prepareInputStickerForFiles(config.Sticker, 0)
 }
 
 // SetChatStickerSetConfig allows you to set the sticker set for a supergroup.
@@ -3212,6 +3261,24 @@ func (config SetMyShortDescriptionConfig) params() (Params, error) {
 
 	params.AddNonEmpty("short_description", config.ShortDescription)
 	params.AddNonEmpty("language_code", config.LanguageCode)
+
+	return params, nil
+}
+
+// GetBusinessConnectionConfig returns information about the connection of
+// the bot with a business account.
+type GetBusinessConnectionConfig struct {
+	BusinessConnectionID string
+}
+
+func (config GetBusinessConnectionConfig) method() string {
+	return "getBusinessConnection"
+}
+
+func (config GetBusinessConnectionConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
 
 	return params, nil
 }

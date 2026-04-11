@@ -118,6 +118,25 @@ type Update struct {
 	//
 	// optional
 	MessageReactionCount *MessageReactionCountUpdated `json:"message_reaction_count,omitempty"`
+	// BusinessConnection is the bot was connected to or disconnected from a
+	// business account, or a user edited an existing connection with the bot.
+	//
+	// optional
+	BusinessConnection *BusinessConnection `json:"business_connection,omitempty"`
+	// BusinessMessage is a new message from a connected business account.
+	//
+	// optional
+	BusinessMessage *Message `json:"business_message,omitempty"`
+	// EditedBusinessMessage is a new version of a message from a connected
+	// business account that is known to the bot and was edited.
+	//
+	// optional
+	EditedBusinessMessage *Message `json:"edited_business_message,omitempty"`
+	// DeletedBusinessMessages are messages that were deleted from a connected
+	// business account.
+	//
+	// optional
+	DeletedBusinessMessages *BusinessMessagesDeleted `json:"deleted_business_messages,omitempty"`
 	// ChatBoost is a boost added to a chat or changed. The bot must be an
 	// administrator in the chat to receive these updates.
 	//
@@ -228,6 +247,11 @@ type User struct {
 	//
 	// optional
 	AddedToAttachmentMenu bool `json:"added_to_attachment_menu,omitempty"`
+	// CanConnectToBusiness true, if the bot can be connected to a Telegram
+	// Business account to receive its messages. Returned only in getMe.
+	//
+	// optional
+	CanConnectToBusiness bool `json:"can_connect_to_business,omitempty"`
 	// FirstName user's or bot's first name
 	FirstName string `json:"first_name"`
 	// LastName user's or bot's last name
@@ -377,6 +401,30 @@ type Chat struct {
 	//
 	// optional
 	CustomEmojiStickerSetName string `json:"custom_emoji_sticker_set_name,omitempty"`
+	// Birthdate of the other party in a private chat. Returned only in getChat.
+	//
+	// optional
+	Birthdate *Birthdate `json:"birthdate,omitempty"`
+	// BusinessIntro is the intro of the business account. Returned only in
+	// getChat for business accounts.
+	//
+	// optional
+	BusinessIntro *BusinessIntro `json:"business_intro,omitempty"`
+	// BusinessLocation is the location of the business account. Returned only
+	// in getChat for business accounts.
+	//
+	// optional
+	BusinessLocation *BusinessLocation `json:"business_location,omitempty"`
+	// BusinessOpeningHours is the opening hours of the business account.
+	// Returned only in getChat for business accounts.
+	//
+	// optional
+	BusinessOpeningHours *BusinessOpeningHours `json:"business_opening_hours,omitempty"`
+	// PersonalChat is the personal channel of the private chat's user.
+	// Returned only in getChat for private chats.
+	//
+	// optional
+	PersonalChat *Chat `json:"personal_chat,omitempty"`
 	// Photo is a chat photo
 	Photo *ChatPhoto `json:"photo"`
 	// Bio is the bio of the other party in a private chat. Returned only in
@@ -499,6 +547,14 @@ func (c Chat) ChatConfig() ChatConfig {
 type Message struct {
 	// MessageID is a unique message identifier inside this chat
 	MessageID int `json:"message_id"`
+	// BusinessConnectionID is the unique identifier of the business
+	// connection from which the message was received. If non-empty, the
+	// message belongs to a chat of the corresponding business account that
+	// is independent from any potential bot chat which might share the same
+	// identifier.
+	//
+	// optional
+	BusinessConnectionID string `json:"business_connection_id,omitempty"`
 	// MessageThreadID is the unique identifier of a message thread to which
 	// the message belongs; for supergroups only.
 	//
@@ -538,6 +594,18 @@ type Message struct {
 	//
 	// optional
 	SenderBoostCount int `json:"sender_boost_count,omitempty"`
+	// SenderBusinessBot is the bot that actually sent the message on behalf
+	// of the business account. Available only for outgoing messages sent on
+	// behalf of the connected business account.
+	//
+	// optional
+	SenderBusinessBot *User `json:"sender_business_bot,omitempty"`
+	// IsFromOffline is true, if the message was sent by an implicit action,
+	// for example, as an away or a greeting business message, or as a
+	// scheduled message.
+	//
+	// optional
+	IsFromOffline bool `json:"is_from_offline,omitempty"`
 	// ReplyToMessage for replies, the original message.
 	// Note that the Message object in this field will not contain further ReplyToMessage fields
 	// even if it itself is a reply;
@@ -1631,6 +1699,18 @@ type KeyboardButtonRequestUsers struct {
 	//
 	// optional
 	MaxQuantity int `json:"max_quantity,omitempty"`
+	// RequestName pass true to request the users' first and last names.
+	//
+	// optional
+	RequestName bool `json:"request_name,omitempty"`
+	// RequestUsername pass true to request the users' usernames.
+	//
+	// optional
+	RequestUsername bool `json:"request_username,omitempty"`
+	// RequestPhoto pass true to request the users' photos.
+	//
+	// optional
+	RequestPhoto bool `json:"request_photo,omitempty"`
 }
 
 // KeyboardButtonRequestChat defines the criteria used to request a suitable
@@ -1676,6 +1756,18 @@ type KeyboardButtonRequestChat struct {
 	//
 	// optional
 	BotIsMember bool `json:"bot_is_member,omitempty"`
+	// RequestTitle pass true to request the chat's title.
+	//
+	// optional
+	RequestTitle bool `json:"request_title,omitempty"`
+	// RequestUsername pass true to request the chat's username.
+	//
+	// optional
+	RequestUsername bool `json:"request_username,omitempty"`
+	// RequestPhoto pass true to request the chat's photo.
+	//
+	// optional
+	RequestPhoto bool `json:"request_photo,omitempty"`
 }
 
 // UsersShared contains information about the users whose identifiers were
@@ -1683,8 +1775,8 @@ type KeyboardButtonRequestChat struct {
 type UsersShared struct {
 	// RequestID is the identifier of the request.
 	RequestID int `json:"request_id"`
-	// UserIDs are the identifiers of the shared users.
-	UserIDs []int64 `json:"user_ids"`
+	// Users is the list of shared users.
+	Users []SharedUser `json:"users"`
 }
 
 // ChatShared contains information about the chat whose identifier was shared
@@ -1694,6 +1786,19 @@ type ChatShared struct {
 	RequestID int `json:"request_id"`
 	// ChatID is the identifier of the shared chat.
 	ChatID int64 `json:"chat_id"`
+	// Title of the chat, if the title was requested by the bot.
+	//
+	// optional
+	Title string `json:"title,omitempty"`
+	// Username of the chat, if the username was requested by the bot and
+	// available.
+	//
+	// optional
+	Username string `json:"username,omitempty"`
+	// Photo of the chat, if the photo was requested by the bot.
+	//
+	// optional
+	Photo []PhotoSize `json:"photo,omitempty"`
 }
 
 // KeyboardButtonRequestManagedBot defines the parameters for the creation
@@ -2337,6 +2442,120 @@ type Story struct {
 type ChatBoostAdded struct {
 	// BoostCount is the number of boosts added by the user.
 	BoostCount int `json:"boost_count"`
+}
+
+// BusinessConnection describes the connection of the bot with a business account.
+type BusinessConnection struct {
+	// ID is the unique identifier of the business connection.
+	ID string `json:"id"`
+	// User is the business account user that created the business connection.
+	User User `json:"user"`
+	// UserChatID is the identifier of a private chat with the user who
+	// created the business connection.
+	UserChatID int64 `json:"user_chat_id"`
+	// Date the connection was established in Unix time.
+	Date int `json:"date"`
+	// CanReply is true, if the bot can act on behalf of the business account
+	// in chats that were active in the last 24 hours.
+	CanReply bool `json:"can_reply"`
+	// IsEnabled is true, if the connection is active.
+	IsEnabled bool `json:"is_enabled"`
+}
+
+// BusinessMessagesDeleted is received when messages are deleted from a
+// connected business account.
+type BusinessMessagesDeleted struct {
+	// BusinessConnectionID is the unique identifier of the business connection.
+	BusinessConnectionID string `json:"business_connection_id"`
+	// Chat in which the messages were deleted. The bot may not have access to
+	// the chat or the corresponding user.
+	Chat Chat `json:"chat"`
+	// MessageIDs is the list of identifiers of deleted messages in the chat.
+	MessageIDs []int `json:"message_ids"`
+}
+
+// BusinessIntro contains information about the intro of a business.
+type BusinessIntro struct {
+	// Title text of the business intro.
+	//
+	// optional
+	Title string `json:"title,omitempty"`
+	// Message text of the business intro.
+	//
+	// optional
+	Message string `json:"message,omitempty"`
+	// Sticker of the business intro.
+	//
+	// optional
+	Sticker *Sticker `json:"sticker,omitempty"`
+}
+
+// BusinessLocation contains information about the location of a business.
+type BusinessLocation struct {
+	// Address of the business.
+	Address string `json:"address"`
+	// Location of the business.
+	//
+	// optional
+	Location *Location `json:"location,omitempty"`
+}
+
+// BusinessOpeningHoursInterval describes an interval of time during which a
+// business is open.
+type BusinessOpeningHoursInterval struct {
+	// OpeningMinute is the minute's sequence number in a week, starting on
+	// Monday, marking the start of the time interval during which the
+	// business is open; 0 - 7 * 24 * 60.
+	OpeningMinute int `json:"opening_minute"`
+	// ClosingMinute is the minute's sequence number in a week, starting on
+	// Monday, marking the end of the time interval during which the business
+	// is open; 0 - 8 * 24 * 60.
+	ClosingMinute int `json:"closing_minute"`
+}
+
+// BusinessOpeningHours describes the opening hours of a business.
+type BusinessOpeningHours struct {
+	// TimeZoneName is the unique name of the time zone for which the opening
+	// hours are defined.
+	TimeZoneName string `json:"time_zone_name"`
+	// OpeningHours is the list of time intervals describing business opening
+	// hours.
+	OpeningHours []BusinessOpeningHoursInterval `json:"opening_hours"`
+}
+
+// Birthdate contains information about a user's birthdate.
+type Birthdate struct {
+	// Day of the user's birth; 1-31.
+	Day int `json:"day"`
+	// Month of the user's birth; 1-12.
+	Month int `json:"month"`
+	// Year of the user's birth.
+	//
+	// optional
+	Year int `json:"year,omitempty"`
+}
+
+// SharedUser contains information about a user that was shared with the bot
+// using a KeyboardButtonRequestUsers button.
+type SharedUser struct {
+	// UserID is the identifier of the shared user.
+	UserID int64 `json:"user_id"`
+	// FirstName of the user, if the name was requested by the bot.
+	//
+	// optional
+	FirstName string `json:"first_name,omitempty"`
+	// LastName of the user, if the name was requested by the bot.
+	//
+	// optional
+	LastName string `json:"last_name,omitempty"`
+	// Username of the user, if the username was requested by the bot.
+	//
+	// optional
+	Username string `json:"username,omitempty"`
+	// Photo of the user, if the photo was requested by the bot.
+	//
+	// optional
+	Photo []PhotoSize `json:"photo,omitempty"`
 }
 
 // Reaction type constants.
@@ -3198,6 +3417,9 @@ type InputSticker struct {
 	// new file data via FilePath/FileBytes/FileReader. Animated and video
 	// stickers can't be uploaded via HTTP URL.
 	Sticker RequestFileData `json:"sticker"`
+	// Format of the added sticker. One of StickerFormatStatic,
+	// StickerFormatAnimated, StickerFormatVideo.
+	Format string `json:"format"`
 	// EmojiList is the list of 1-20 emoji associated with the sticker.
 	EmojiList []string `json:"emoji_list"`
 	// MaskPosition for "mask" stickers, the position where the mask should
@@ -3225,10 +3447,6 @@ type StickerSet struct {
 	Title string `json:"title"`
 	// StickerType of stickers in the set, currently one of “regular”, “mask”, “custom_emoji”
 	StickerType string `json:"sticker_type"`
-	// IsAnimated true, if the sticker set contains animated stickers
-	IsAnimated bool `json:"is_animated"`
-	// IsVideo true, if the sticker set contains video stickers
-	IsVideo bool `json:"is_video"`
 	// Stickers list of all set stickers
 	Stickers []Sticker `json:"stickers"`
 	// Thumb is the sticker set thumbnail in the .WEBP or .TGS format
