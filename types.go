@@ -796,6 +796,23 @@ type Message struct {
 	//
 	// optional
 	WriteAccessAllowed *WriteAccessAllowed `json:"write_access_allowed,omitempty"`
+	// GiveawayCreated is a service message: a scheduled giveaway was created.
+	//
+	// optional
+	GiveawayCreated *GiveawayCreated `json:"giveaway_created,omitempty"`
+	// Giveaway is a scheduled giveaway message.
+	//
+	// optional
+	Giveaway *Giveaway `json:"giveaway,omitempty"`
+	// GiveawayWinners is a giveaway with public winners that was completed.
+	//
+	// optional
+	GiveawayWinners *GiveawayWinners `json:"giveaway_winners,omitempty"`
+	// GiveawayCompleted is a service message about the completion of a
+	// giveaway without public winners.
+	//
+	// optional
+	GiveawayCompleted *GiveawayCompleted `json:"giveaway_completed,omitempty"`
 	// HasMediaSpoiler is true, if the message media is covered by a spoiler animation
 	//
 	// optional
@@ -2448,6 +2465,14 @@ type ExternalReplyInfo struct {
 	//
 	// optional
 	Game *Game `json:"game,omitempty"`
+	// Giveaway is set if the message is a scheduled giveaway.
+	//
+	// optional
+	Giveaway *Giveaway `json:"giveaway,omitempty"`
+	// GiveawayWinners is set if the message is a giveaway with public winners.
+	//
+	// optional
+	GiveawayWinners *GiveawayWinners `json:"giveaway_winners,omitempty"`
 	// Invoice is set if the message is an invoice for a payment.
 	//
 	// optional
@@ -2536,6 +2561,109 @@ type ChatBoostRemoved struct {
 type UserChatBoosts struct {
 	// Boosts is the list of boosts added to the chat by the user.
 	Boosts []ChatBoost `json:"boosts"`
+}
+
+// Giveaway represents a message about a scheduled giveaway.
+type Giveaway struct {
+	// Chats is the list of chats which the user must join to participate in
+	// the giveaway.
+	Chats []Chat `json:"chats"`
+	// WinnersSelectionDate is the point in time (Unix timestamp) when winners
+	// of the giveaway will be selected.
+	WinnersSelectionDate int `json:"winners_selection_date"`
+	// WinnerCount is the number of users which are supposed to be selected
+	// as winners of the giveaway.
+	WinnerCount int `json:"winner_count"`
+	// OnlyNewMembers is true, if only users who join the chats after the
+	// giveaway started should be eligible to win.
+	//
+	// optional
+	OnlyNewMembers bool `json:"only_new_members,omitempty"`
+	// HasPublicWinners is true, if the list of giveaway winners will be
+	// visible to everyone.
+	//
+	// optional
+	HasPublicWinners bool `json:"has_public_winners,omitempty"`
+	// PrizeDescription is the description of additional giveaway prize.
+	//
+	// optional
+	PrizeDescription string `json:"prize_description,omitempty"`
+	// CountryCodes is a list of two-letter ISO 3166-1 alpha-2 country codes
+	// indicating the countries from which eligible users for the giveaway
+	// must come.
+	//
+	// optional
+	CountryCodes []string `json:"country_codes,omitempty"`
+	// PremiumSubscriptionMonthCount is the number of months the Telegram
+	// Premium subscription won from the giveaway will be active for.
+	//
+	// optional
+	PremiumSubscriptionMonthCount int `json:"premium_subscription_month_count,omitempty"`
+}
+
+// GiveawayCreated represents a service message about the creation of a
+// scheduled giveaway. Currently holds no information.
+type GiveawayCreated struct{}
+
+// GiveawayWinners represents a message about the completion of a giveaway
+// with public winners.
+type GiveawayWinners struct {
+	// Chat that created the giveaway.
+	Chat Chat `json:"chat"`
+	// GiveawayMessageID is the identifier of the message with the giveaway
+	// in the chat.
+	GiveawayMessageID int `json:"giveaway_message_id"`
+	// WinnersSelectionDate is the point in time (Unix timestamp) when winners
+	// of the giveaway were selected.
+	WinnersSelectionDate int `json:"winners_selection_date"`
+	// WinnerCount is the total number of winners in the giveaway.
+	WinnerCount int `json:"winner_count"`
+	// Winners is the list of up to 100 winners of the giveaway.
+	Winners []User `json:"winners"`
+	// AdditionalChatCount is the number of other chats the user had to join
+	// in order to be eligible for the giveaway.
+	//
+	// optional
+	AdditionalChatCount int `json:"additional_chat_count,omitempty"`
+	// PremiumSubscriptionMonthCount is the number of months the Telegram
+	// Premium subscription won from the giveaway will be active for.
+	//
+	// optional
+	PremiumSubscriptionMonthCount int `json:"premium_subscription_month_count,omitempty"`
+	// UnclaimedPrizeCount is the number of undistributed prizes.
+	//
+	// optional
+	UnclaimedPrizeCount int `json:"unclaimed_prize_count,omitempty"`
+	// OnlyNewMembers is true, if only users who joined the chats after the
+	// giveaway started were eligible to win.
+	//
+	// optional
+	OnlyNewMembers bool `json:"only_new_members,omitempty"`
+	// WasRefunded is true, if the giveaway was canceled because the payment
+	// for it was refunded.
+	//
+	// optional
+	WasRefunded bool `json:"was_refunded,omitempty"`
+	// PrizeDescription is the description of additional giveaway prize.
+	//
+	// optional
+	PrizeDescription string `json:"prize_description,omitempty"`
+}
+
+// GiveawayCompleted represents a service message about the completion of a
+// giveaway without public winners.
+type GiveawayCompleted struct {
+	// WinnerCount is the number of winners in the giveaway.
+	WinnerCount int `json:"winner_count"`
+	// UnclaimedPrizeCount is the number of undistributed prizes.
+	//
+	// optional
+	UnclaimedPrizeCount int `json:"unclaimed_prize_count,omitempty"`
+	// GiveawayMessage is the message with the giveaway that was completed,
+	// if it wasn't deleted.
+	//
+	// optional
+	GiveawayMessage *Message `json:"giveaway_message,omitempty"`
 }
 
 // LinkPreviewOptions describes the options used for link preview generation.
