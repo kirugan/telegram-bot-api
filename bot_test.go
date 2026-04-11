@@ -35,17 +35,21 @@ func (t testLogger) Printf(format string, v ...interface{}) {
 }
 
 func getBot(t *testing.T) (*BotAPI, error) {
-	bot, err := NewBotAPI(TestToken)
-	bot.Debug = true
-
-	logger := testLogger{t}
-	SetLogger(logger)
-
-	if err != nil {
-		t.Error(err)
+	token := os.Getenv("TELEGRAM_BOT_TOKEN")
+	if token == "" {
+		token = TestToken
 	}
 
-	return bot, err
+	bot, err := NewBotAPI(token)
+	if err != nil {
+		t.Skipf("skipping: NewBotAPI failed (set TELEGRAM_BOT_TOKEN to a real token to run): %v", err)
+		return nil, err
+	}
+
+	bot.Debug = true
+	SetLogger(testLogger{t})
+
+	return bot, nil
 }
 
 func TestNewBotAPI_notoken(t *testing.T) {
@@ -745,7 +749,7 @@ func ExampleNewWebhook() {
 	}
 }
 
-func ExampleWebhookHandler() {
+func ExampleNewWebhookWithCert() {
 	bot, err := NewBotAPI("MyAwesomeBotToken")
 	if err != nil {
 		panic(err)
