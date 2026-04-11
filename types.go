@@ -2980,6 +2980,11 @@ type Gift struct {
 	// StarCount is the number of Telegram Stars that must be paid to send
 	// the sticker.
 	StarCount int `json:"star_count"`
+	// UpgradeStarCount is the number of Telegram Stars that must be paid
+	// to upgrade the gift to a unique one.
+	//
+	// optional
+	UpgradeStarCount int `json:"upgrade_star_count,omitempty"`
 	// TotalCount is the total number of the gifts of this type that can
 	// be sent; for limited gifts only.
 	//
@@ -4439,10 +4444,6 @@ type InlineQueryResultArticle struct {
 	//
 	// optional
 	URL string `json:"url,omitempty"`
-	// HideURL pass True, if you don't want the URL to be shown in the message.
-	//
-	// optional
-	HideURL bool `json:"hide_url,omitempty"`
 	// Description short description of the result.
 	//
 	// optional

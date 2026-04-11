@@ -2064,6 +2064,7 @@ func (GetAvailableGiftsConfig) params() (Params, error) {
 type SendGiftConfig struct {
 	UserID        int64
 	GiftID        string
+	PayForUpgrade bool
 	Text          string
 	TextParseMode string
 	TextEntities  []MessageEntity
@@ -2078,11 +2079,102 @@ func (config SendGiftConfig) params() (Params, error) {
 
 	params.AddNonZero64("user_id", config.UserID)
 	params["gift_id"] = config.GiftID
+	params.AddBool("pay_for_upgrade", config.PayForUpgrade)
 	params.AddNonEmpty("text", config.Text)
 	params.AddNonEmpty("text_parse_mode", config.TextParseMode)
 	err := params.AddAny("text_entities", config.TextEntities)
 
 	return params, err
+}
+
+// VerifyUserConfig verifies a user on behalf of the organization which is
+// represented by the bot.
+type VerifyUserConfig struct {
+	UserID            int64
+	CustomDescription string
+}
+
+func (VerifyUserConfig) method() string {
+	return "verifyUser"
+}
+
+func (config VerifyUserConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params.AddNonEmpty("custom_description", config.CustomDescription)
+
+	return params, nil
+}
+
+// VerifyChatConfig verifies a chat on behalf of the organization which is
+// represented by the bot.
+//
+// Provide the target chat via either ChatID (numeric identifier) or
+// ChannelUsername ("@channelusername"); the first non-zero / non-empty
+// value is used.
+type VerifyChatConfig struct {
+	ChatID            int64
+	ChannelUsername   string
+	CustomDescription string
+}
+
+func (VerifyChatConfig) method() string {
+	return "verifyChat"
+}
+
+func (config VerifyChatConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
+	params.AddNonEmpty("custom_description", config.CustomDescription)
+
+	return params, nil
+}
+
+// RemoveUserVerificationConfig removes verification from a user who is
+// currently verified on behalf of the organization represented by the bot.
+type RemoveUserVerificationConfig struct {
+	UserID int64
+}
+
+func (RemoveUserVerificationConfig) method() string {
+	return "removeUserVerification"
+}
+
+func (config RemoveUserVerificationConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+
+	return params, nil
+}
+
+// RemoveChatVerificationConfig removes verification from a chat that is
+// currently verified on behalf of the organization represented by the bot.
+//
+// Provide the target chat via either ChatID (numeric identifier) or
+// ChannelUsername ("@channelusername"); the first non-zero / non-empty
+// value is used.
+type RemoveChatVerificationConfig struct {
+	ChatID          int64
+	ChannelUsername string
+}
+
+func (RemoveChatVerificationConfig) method() string {
+	return "removeChatVerification"
+}
+
+func (config RemoveChatVerificationConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
+
+	return params, nil
 }
 
 // SetUserEmojiStatusConfig changes the emoji status for a given user that
