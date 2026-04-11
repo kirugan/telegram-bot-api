@@ -2170,6 +2170,17 @@ type ChatInviteLink struct {
 	//
 	// optional
 	PendingJoinRequestCount int `json:"pending_join_request_count,omitempty"`
+	// SubscriptionPeriod is the number of seconds the subscription will be
+	// active for before the next payment.
+	//
+	// optional
+	SubscriptionPeriod int `json:"subscription_period,omitempty"`
+	// SubscriptionPrice is the amount of Telegram Stars a user must pay
+	// initially and after each subsequent subscription period to be a member
+	// of the chat using the link.
+	//
+	// optional
+	SubscriptionPrice int `json:"subscription_price,omitempty"`
 }
 
 type ChatAdministratorRights struct {
@@ -2766,6 +2777,11 @@ type TransactionPartner struct {
 	//
 	// optional
 	InvoicePayload string `json:"invoice_payload,omitempty"`
+	// PaidMedia is the information about the paid media bought by the user.
+	// Set when Type is "user" and the transaction involves paid media.
+	//
+	// optional
+	PaidMedia []PaidMedia `json:"paid_media,omitempty"`
 	// WithdrawalState is the state of the transaction if the transaction is
 	// outgoing. Set when Type is "fragment".
 	//

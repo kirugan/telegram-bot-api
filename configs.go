@@ -1745,6 +1745,58 @@ func (config EditChatInviteLinkConfig) params() (Params, error) {
 	return params, nil
 }
 
+// CreateChatSubscriptionInviteLinkConfig creates a subscription invite link
+// for a channel chat. The bot must have the can_invite_users administrator
+// rights. The link can be edited using EditChatSubscriptionInviteLinkConfig
+// or revoked using RevokeChatInviteLinkConfig.
+type CreateChatSubscriptionInviteLinkConfig struct {
+	ChatConfig
+	Name               string
+	SubscriptionPeriod int // required, in seconds; currently must be 2592000 (30 days)
+	SubscriptionPrice  int // required, 1-10000 Telegram Stars
+}
+
+func (CreateChatSubscriptionInviteLinkConfig) method() string {
+	return "createChatSubscriptionInviteLink"
+}
+
+func (config CreateChatSubscriptionInviteLinkConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
+	params.AddNonEmpty("name", config.Name)
+	params.AddNonZero("subscription_period", config.SubscriptionPeriod)
+	params.AddNonZero("subscription_price", config.SubscriptionPrice)
+
+	return params, nil
+}
+
+// EditChatSubscriptionInviteLinkConfig edits a subscription invite link
+// created by the bot. Only the Name field can be edited.
+type EditChatSubscriptionInviteLinkConfig struct {
+	ChatConfig
+	InviteLink string
+	Name       string
+}
+
+func (EditChatSubscriptionInviteLinkConfig) method() string {
+	return "editChatSubscriptionInviteLink"
+}
+
+func (config EditChatSubscriptionInviteLinkConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
+	params["invite_link"] = config.InviteLink
+	params.AddNonEmpty("name", config.Name)
+
+	return params, nil
+}
+
 // RevokeChatInviteLinkConfig allows you to revoke an invite link created by the
 // bot. If the primary link is revoked, a new link is automatically generated.
 // The bot must be an administrator in the chat for this to work and must have
