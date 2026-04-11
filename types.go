@@ -252,6 +252,10 @@ type User struct {
 	//
 	// optional
 	CanConnectToBusiness bool `json:"can_connect_to_business,omitempty"`
+	// HasMainWebApp true, if the bot has a main Web App. Returned only in getMe.
+	//
+	// optional
+	HasMainWebApp bool `json:"has_main_web_app,omitempty"`
 	// FirstName user's or bot's first name
 	FirstName string `json:"first_name"`
 	// LastName user's or bot's last name

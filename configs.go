@@ -2247,11 +2247,16 @@ func (config GetUserChatBoostsConfig) params() (Params, error) {
 }
 
 // PinChatMessageConfig contains information of a message in a chat to pin.
+//
+// Provide the target chat via either ChatID (numeric identifier) or
+// ChannelUsername ("@channelusername"); the first non-zero / non-empty
+// value is used.
 type PinChatMessageConfig struct {
-	ChatID              int64
-	ChannelUsername     string
-	MessageID           int
-	DisableNotification bool
+	BusinessConnectionID string
+	ChatID               int64
+	ChannelUsername      string
+	MessageID            int
+	DisableNotification  bool
 }
 
 func (config PinChatMessageConfig) method() string {
@@ -2261,6 +2266,7 @@ func (config PinChatMessageConfig) method() string {
 func (config PinChatMessageConfig) params() (Params, error) {
 	params := make(Params)
 
+	params.AddNonEmpty("business_connection_id", config.BusinessConnectionID)
 	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
 		return params, err
 	}
@@ -2273,10 +2279,15 @@ func (config PinChatMessageConfig) params() (Params, error) {
 // UnpinChatMessageConfig contains information of a chat message to unpin.
 //
 // If MessageID is not specified, it will unpin the most recent pin.
+//
+// Provide the target chat via either ChatID (numeric identifier) or
+// ChannelUsername ("@channelusername"); the first non-zero / non-empty
+// value is used.
 type UnpinChatMessageConfig struct {
-	ChatID          int64
-	ChannelUsername string
-	MessageID       int
+	BusinessConnectionID string
+	ChatID               int64
+	ChannelUsername      string
+	MessageID            int
 }
 
 func (config UnpinChatMessageConfig) method() string {
@@ -2286,6 +2297,7 @@ func (config UnpinChatMessageConfig) method() string {
 func (config UnpinChatMessageConfig) params() (Params, error) {
 	params := make(Params)
 
+	params.AddNonEmpty("business_connection_id", config.BusinessConnectionID)
 	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
 		return params, err
 	}
