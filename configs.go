@@ -335,7 +335,9 @@ func (edit BaseEdit) params() (Params, error) {
 	if edit.InlineMessageID != "" {
 		params["inline_message_id"] = edit.InlineMessageID
 	} else {
-		params.AddFirstValid("chat_id", edit.ChatID, edit.ChannelUsername)
+		if err := params.AddFirstValid("chat_id", edit.ChatID, edit.ChannelUsername); err != nil {
+			return params, err
+		}
 		params.AddNonZero("message_id", edit.MessageID)
 	}
 
@@ -414,7 +416,9 @@ func (config CopyMessageConfig) params() (Params, error) {
 		return params, err
 	}
 
-	params.AddFirstValid("from_chat_id", config.FromChatID, config.FromChannelUsername)
+	if err = params.AddFirstValid("from_chat_id", config.FromChatID, config.FromChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_id", config.MessageID)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
@@ -972,7 +976,9 @@ func (config SetGameScoreConfig) params() (Params, error) {
 	if config.InlineMessageID != "" {
 		params["inline_message_id"] = config.InlineMessageID
 	} else {
-		params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+		if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+			return params, err
+		}
 		params.AddNonZero("message_id", config.MessageID)
 	}
 
@@ -1000,7 +1006,9 @@ func (config GetGameHighScoresConfig) params() (Params, error) {
 	if config.InlineMessageID != "" {
 		params["inline_message_id"] = config.InlineMessageID
 	} else {
-		params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+		if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+			return params, err
+		}
 		params.AddNonZero("message_id", config.MessageID)
 	}
 
@@ -1356,7 +1364,9 @@ func (config UnbanChatMemberConfig) method() string {
 func (config UnbanChatMemberConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero64("user_id", config.UserID)
 	params.AddBool("only_if_banned", config.OnlyIfBanned)
 
@@ -1377,7 +1387,9 @@ func (config BanChatMemberConfig) method() string {
 func (config BanChatMemberConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero64("user_id", config.UserID)
 	params.AddNonZero64("until_date", config.UntilDate)
 	params.AddBool("revoke_messages", config.RevokeMessages)
@@ -1405,7 +1417,9 @@ func (config RestrictChatMemberConfig) method() string {
 func (config RestrictChatMemberConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero64("user_id", config.UserID)
 
 	err := params.AddInterface("permissions", config.Permissions)
@@ -1442,7 +1456,9 @@ func (config PromoteChatMemberConfig) method() string {
 func (config PromoteChatMemberConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero64("user_id", config.UserID)
 
 	params.AddBool("is_anonymous", config.IsAnonymous)
@@ -1478,7 +1494,9 @@ func (SetChatAdministratorCustomTitle) method() string {
 func (config SetChatAdministratorCustomTitle) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero64("user_id", config.UserID)
 	params.AddNonEmpty("custom_title", config.CustomTitle)
 
@@ -1504,7 +1522,9 @@ func (config BanChatSenderChatConfig) method() string {
 func (config BanChatSenderChatConfig) params() (Params, error) {
 	params := make(Params)
 
-	_ = params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero64("sender_chat_id", config.SenderChatID)
 	params.AddNonZero("until_date", config.UntilDate)
 
@@ -1527,7 +1547,9 @@ func (config UnbanChatSenderChatConfig) method() string {
 func (config UnbanChatSenderChatConfig) params() (Params, error) {
 	params := make(Params)
 
-	_ = params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero64("sender_chat_id", config.SenderChatID)
 
 	return params, nil
@@ -1542,7 +1564,9 @@ type ChatConfig struct {
 func (config ChatConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -1590,7 +1614,9 @@ func (SetChatPermissionsConfig) method() string {
 func (config SetChatPermissionsConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	err := params.AddInterface("permissions", config.Permissions)
 	params.AddBool("use_independent_chat_permissions", config.UseIndependentChatPermissions)
 
@@ -1611,7 +1637,9 @@ func (ChatInviteLinkConfig) method() string {
 func (config ChatInviteLinkConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -1636,7 +1664,9 @@ func (config CreateChatInviteLinkConfig) params() (Params, error) {
 	params := make(Params)
 
 	params.AddNonEmpty("name", config.Name)
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("expire_date", config.ExpireDate)
 	params.AddNonZero("member_limit", config.MemberLimit)
 	params.AddBool("creates_join_request", config.CreatesJoinRequest)
@@ -1663,7 +1693,9 @@ func (EditChatInviteLinkConfig) method() string {
 func (config EditChatInviteLinkConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonEmpty("name", config.Name)
 	params["invite_link"] = config.InviteLink
 	params.AddNonZero("expire_date", config.ExpireDate)
@@ -1689,7 +1721,9 @@ func (RevokeChatInviteLinkConfig) method() string {
 func (config RevokeChatInviteLinkConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params["invite_link"] = config.InviteLink
 
 	return params, nil
@@ -1708,7 +1742,9 @@ func (ApproveChatJoinRequestConfig) method() string {
 func (config ApproveChatJoinRequestConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("user_id", int(config.UserID))
 
 	return params, nil
@@ -1727,7 +1763,9 @@ func (DeclineChatJoinRequest) method() string {
 func (config DeclineChatJoinRequest) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("user_id", int(config.UserID))
 
 	return params, nil
@@ -1746,7 +1784,9 @@ func (config LeaveChatConfig) method() string {
 func (config LeaveChatConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -1761,7 +1801,9 @@ type ChatConfigWithUser struct {
 func (config ChatConfigWithUser) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero64("user_id", config.UserID)
 
 	return params, nil
@@ -1962,7 +2004,9 @@ func (config DeleteMessageConfig) method() string {
 func (config DeleteMessageConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_id", config.MessageID)
 
 	return params, nil
@@ -2135,7 +2179,9 @@ func (config PinChatMessageConfig) method() string {
 func (config PinChatMessageConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_id", config.MessageID)
 	params.AddBool("disable_notification", config.DisableNotification)
 
@@ -2158,7 +2204,9 @@ func (config UnpinChatMessageConfig) method() string {
 func (config UnpinChatMessageConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_id", config.MessageID)
 
 	return params, nil
@@ -2178,7 +2226,9 @@ func (config UnpinAllChatMessagesConfig) method() string {
 func (config UnpinAllChatMessagesConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -2201,7 +2251,9 @@ func (config CreateForumTopicConfig) method() string {
 func (config CreateForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params["name"] = config.Name
 	params.AddNonZero("icon_color", config.IconColor)
 	params.AddNonEmpty("icon_custom_emoji_id", config.IconCustomEmojiID)
@@ -2227,7 +2279,9 @@ func (config EditForumTopicConfig) method() string {
 func (config EditForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
 	params.AddNonEmpty("name", config.Name)
 	params.AddNonEmpty("icon_custom_emoji_id", config.IconCustomEmojiID)
@@ -2251,7 +2305,9 @@ func (config CloseForumTopicConfig) method() string {
 func (config CloseForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
 
 	return params, nil
@@ -2273,7 +2329,9 @@ func (config ReopenForumTopicConfig) method() string {
 func (config ReopenForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
 
 	return params, nil
@@ -2295,7 +2353,9 @@ func (config DeleteForumTopicConfig) method() string {
 func (config DeleteForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
 
 	return params, nil
@@ -2317,7 +2377,9 @@ func (config UnpinAllForumTopicMessagesConfig) method() string {
 func (config UnpinAllForumTopicMessagesConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
 
 	return params, nil
@@ -2352,7 +2414,9 @@ func (config EditGeneralForumTopicConfig) method() string {
 func (config EditGeneralForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params["name"] = config.Name
 
 	return params, nil
@@ -2372,7 +2436,9 @@ func (config CloseGeneralForumTopicConfig) method() string {
 func (config CloseGeneralForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -2392,7 +2458,9 @@ func (config ReopenGeneralForumTopicConfig) method() string {
 func (config ReopenGeneralForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -2412,7 +2480,9 @@ func (config HideGeneralForumTopicConfig) method() string {
 func (config HideGeneralForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -2431,7 +2501,9 @@ func (config UnhideGeneralForumTopicConfig) method() string {
 func (config UnhideGeneralForumTopicConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -2487,7 +2559,9 @@ func (config DeleteChatPhotoConfig) method() string {
 func (config DeleteChatPhotoConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
@@ -2507,7 +2581,9 @@ func (config SetChatTitleConfig) method() string {
 func (config SetChatTitleConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params["title"] = config.Title
 
 	return params, nil
@@ -2528,7 +2604,9 @@ func (config SetChatDescriptionConfig) method() string {
 func (config SetChatDescriptionConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
 	params["description"] = config.Description
 
 	return params, nil
@@ -2890,7 +2968,9 @@ func (config SetChatStickerSetConfig) method() string {
 func (config SetChatStickerSetConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 	params["sticker_set_name"] = config.StickerSetName
 
 	return params, nil
@@ -2909,7 +2989,9 @@ func (config DeleteChatStickerSetConfig) method() string {
 func (config DeleteChatStickerSetConfig) params() (Params, error) {
 	params := make(Params)
 
-	params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername)
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername); err != nil {
+		return params, err
+	}
 
 	return params, nil
 }
