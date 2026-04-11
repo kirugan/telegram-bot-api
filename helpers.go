@@ -19,8 +19,7 @@ func NewMessage(chatID int64, text string) MessageConfig {
 		BaseChat: BaseChat{
 			ChatID: chatID,
 		},
-		Text:                  text,
-		DisableWebPagePreview: false,
+		Text: text,
 	}
 }
 

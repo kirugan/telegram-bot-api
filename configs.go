@@ -341,10 +341,10 @@ func (edit BaseEdit) params() (Params, error) {
 // MessageConfig contains information about a SendMessage request.
 type MessageConfig struct {
 	BaseChat
-	Text                  string
-	ParseMode             string
-	Entities              []MessageEntity
-	DisableWebPagePreview bool
+	Text               string
+	ParseMode          string
+	Entities           []MessageEntity
+	LinkPreviewOptions *LinkPreviewOptions
 }
 
 func (config MessageConfig) params() (Params, error) {
@@ -354,9 +354,11 @@ func (config MessageConfig) params() (Params, error) {
 	}
 
 	params.AddNonEmpty("text", config.Text)
-	params.AddBool("disable_web_page_preview", config.DisableWebPagePreview)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
-	err = params.AddInterface("entities", config.Entities)
+	if err = params.AddAny("link_preview_options", config.LinkPreviewOptions); err != nil {
+		return params, err
+	}
+	err = params.AddAny("entities", config.Entities)
 
 	return params, err
 }
@@ -1024,10 +1026,10 @@ func (config ChatActionConfig) method() string {
 // EditMessageTextConfig allows you to modify the text in a message.
 type EditMessageTextConfig struct {
 	BaseEdit
-	Text                  string
-	ParseMode             string
-	Entities              []MessageEntity
-	DisableWebPagePreview bool
+	Text               string
+	ParseMode          string
+	Entities           []MessageEntity
+	LinkPreviewOptions *LinkPreviewOptions
 }
 
 func (config EditMessageTextConfig) params() (Params, error) {
@@ -1038,8 +1040,10 @@ func (config EditMessageTextConfig) params() (Params, error) {
 
 	params["text"] = config.Text
 	params.AddNonEmpty("parse_mode", config.ParseMode)
-	params.AddBool("disable_web_page_preview", config.DisableWebPagePreview)
-	err = params.AddInterface("entities", config.Entities)
+	if err = params.AddAny("link_preview_options", config.LinkPreviewOptions); err != nil {
+		return params, err
+	}
+	err = params.AddAny("entities", config.Entities)
 
 	return params, err
 }
