@@ -841,6 +841,11 @@ type Message struct {
 	//
 	// optional
 	SuccessfulPayment *SuccessfulPayment `json:"successful_payment,omitempty"`
+	// RefundedPayment is a service message about a refunded payment,
+	// information about the payment.
+	//
+	// optional
+	RefundedPayment *RefundedPayment `json:"refunded_payment,omitempty"`
 	// ConnectedWebsite is the domain name of the website on which the user has
 	// logged in;
 	//
@@ -5084,6 +5089,25 @@ type SuccessfulPayment struct {
 	TelegramPaymentChargeID string `json:"telegram_payment_charge_id"`
 	// ProviderPaymentChargeID provider payment identifier
 	ProviderPaymentChargeID string `json:"provider_payment_charge_id"`
+}
+
+// RefundedPayment contains information about a refunded payment.
+type RefundedPayment struct {
+	// Currency is the three-letter ISO 4217 currency code, or "XTR" for
+	// payments in Telegram Stars. Currently, always "XTR".
+	Currency string `json:"currency"`
+	// TotalAmount is the total refunded price in the smallest units of the
+	// currency (integer, not float/double). For example, for a price of
+	// US$ 1.45, total_amount == 145.
+	TotalAmount int `json:"total_amount"`
+	// InvoicePayload is the bot-specified invoice payload.
+	InvoicePayload string `json:"invoice_payload"`
+	// TelegramPaymentChargeID is the Telegram payment identifier.
+	TelegramPaymentChargeID string `json:"telegram_payment_charge_id"`
+	// ProviderPaymentChargeID is the provider payment identifier.
+	//
+	// optional
+	ProviderPaymentChargeID string `json:"provider_payment_charge_id,omitempty"`
 }
 
 // ShippingQuery contains information about an incoming shipping query.
