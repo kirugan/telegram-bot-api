@@ -565,10 +565,8 @@ type ChatFullInfo struct {
 	//
 	// optional
 	CanSendPaidMedia bool `json:"can_send_paid_media,omitempty"`
-	// CanSendGift is true, if gifts can be sent to the chat. Channel chats only.
-	//
-	// optional
-	CanSendGift bool `json:"can_send_gift,omitempty"`
+	// AcceptedGiftTypes are the types of gifts accepted by the chat.
+	AcceptedGiftTypes AcceptedGiftTypes `json:"accepted_gift_types"`
 }
 
 // Message represents a message.
@@ -945,6 +943,24 @@ type Message struct {
 	//
 	// optional
 	ChatBackgroundSet *ChatBackground `json:"chat_background_set,omitempty"`
+	// Gift is a service message: a gift was sent or received.
+	//
+	// optional
+	Gift *GiftInfo `json:"gift,omitempty"`
+	// UniqueGift is a service message: a unique gift was sent or received.
+	//
+	// optional
+	UniqueGift *UniqueGiftInfo `json:"unique_gift,omitempty"`
+	// PaidMessagePriceChanged is a service message about a change in the
+	// price of paid messages within the chat.
+	//
+	// optional
+	PaidMessagePriceChanged *PaidMessagePriceChanged `json:"paid_message_price_changed,omitempty"`
+	// PaidStarCount is the number of Telegram Stars that were paid by the
+	// sender of the message to send it.
+	//
+	// optional
+	PaidStarCount int `json:"paid_star_count,omitempty"`
 	// GiveawayCreated is a service message: a scheduled giveaway was created.
 	//
 	// optional
@@ -2551,6 +2567,73 @@ type ChatBoostAdded struct {
 	BoostCount int `json:"boost_count"`
 }
 
+// BusinessBotRights represents the rights of a business bot.
+type BusinessBotRights struct {
+	// CanReply is true, if the bot can send and edit messages in the chats
+	// that were active in the last 24 hours.
+	//
+	// optional
+	CanReply bool `json:"can_reply,omitempty"`
+	// CanReadMessages is true, if the bot can mark incoming private messages as read.
+	//
+	// optional
+	CanReadMessages bool `json:"can_read_messages,omitempty"`
+	// CanDeleteSentMessages is true, if the bot can delete sent messages.
+	//
+	// optional
+	CanDeleteSentMessages bool `json:"can_delete_sent_messages,omitempty"`
+	// CanDeleteAllMessages is true, if the bot can delete any message.
+	//
+	// optional
+	CanDeleteAllMessages bool `json:"can_delete_all_messages,omitempty"`
+	// CanEditName is true, if the bot can edit the first and last name of the account.
+	//
+	// optional
+	CanEditName bool `json:"can_edit_name,omitempty"`
+	// CanEditBio is true, if the bot can edit the bio of the account.
+	//
+	// optional
+	CanEditBio bool `json:"can_edit_bio,omitempty"`
+	// CanEditProfilePhoto is true, if the bot can edit the profile photo of the account.
+	//
+	// optional
+	CanEditProfilePhoto bool `json:"can_edit_profile_photo,omitempty"`
+	// CanEditUsername is true, if the bot can edit the username of the account.
+	//
+	// optional
+	CanEditUsername bool `json:"can_edit_username,omitempty"`
+	// CanChangeGiftSettings is true, if the bot can change the privacy settings
+	// pertaining to gifts for the account.
+	//
+	// optional
+	CanChangeGiftSettings bool `json:"can_change_gift_settings,omitempty"`
+	// CanViewGiftsAndStars is true, if the bot can view gifts and the amount
+	// of Telegram Stars owned by the account.
+	//
+	// optional
+	CanViewGiftsAndStars bool `json:"can_view_gifts_and_stars,omitempty"`
+	// CanConvertGiftsToStars is true, if the bot can convert regular gifts owned
+	// by the account to Telegram Stars.
+	//
+	// optional
+	CanConvertGiftsToStars bool `json:"can_convert_gifts_to_stars,omitempty"`
+	// CanTransferAndUpgradeGifts is true, if the bot can transfer and upgrade
+	// gifts owned by the account.
+	//
+	// optional
+	CanTransferAndUpgradeGifts bool `json:"can_transfer_and_upgrade_gifts,omitempty"`
+	// CanTransferStars is true, if the bot can transfer Telegram Stars received
+	// by the account.
+	//
+	// optional
+	CanTransferStars bool `json:"can_transfer_stars,omitempty"`
+	// CanManageStories is true, if the bot can post, edit and delete stories
+	// on behalf of the account.
+	//
+	// optional
+	CanManageStories bool `json:"can_manage_stories,omitempty"`
+}
+
 // BusinessConnection describes the connection of the bot with a business account.
 type BusinessConnection struct {
 	// ID is the unique identifier of the business connection.
@@ -2562,11 +2645,37 @@ type BusinessConnection struct {
 	UserChatID int64 `json:"user_chat_id"`
 	// Date the connection was established in Unix time.
 	Date int `json:"date"`
-	// CanReply is true, if the bot can act on behalf of the business account
-	// in chats that were active in the last 24 hours.
-	CanReply bool `json:"can_reply"`
+	// Rights is the rights of the business bot.
+	//
+	// optional
+	Rights *BusinessBotRights `json:"rights,omitempty"`
 	// IsEnabled is true, if the connection is active.
 	IsEnabled bool `json:"is_enabled"`
+}
+
+// StarAmount describes an amount of Telegram Stars.
+type StarAmount struct {
+	// Amount is the integer amount of Telegram Stars, rounded to 0; can be negative.
+	Amount int `json:"amount"`
+	// NanostarAmount is the number of 1/1000000000 shares of Telegram Stars;
+	// from -999999999 to 999999999.
+	//
+	// optional
+	NanostarAmount int `json:"nanostar_amount,omitempty"`
+}
+
+// AcceptedGiftTypes describes the types of gifts accepted by a user or chat.
+type AcceptedGiftTypes struct {
+	// UnlimitedGifts is true, if unlimited regular gifts are accepted.
+	UnlimitedGifts bool `json:"unlimited_gifts"`
+	// LimitedGifts is true, if limited regular gifts are accepted.
+	LimitedGifts bool `json:"limited_gifts"`
+	// UniqueGifts is true, if unique gifts or gifts that can be upgraded to
+	// unique for free are accepted.
+	UniqueGifts bool `json:"unique_gifts"`
+	// PremiumSubscription is true, if a Telegram Premium subscription is
+	// accepted.
+	PremiumSubscription bool `json:"premium_subscription"`
 }
 
 // BusinessMessagesDeleted is received when messages are deleted from a
@@ -2871,6 +2980,18 @@ type TransactionPartner struct {
 	//
 	// optional
 	SubscriptionPeriod int `json:"subscription_period,omitempty"`
+	// PremiumSubscriptionDuration is the duration of a paid Telegram
+	// Premium subscription, in months. Set when Type is "user" and the
+	// transaction is a premium subscription gift.
+	//
+	// optional
+	PremiumSubscriptionDuration int `json:"premium_subscription_duration,omitempty"`
+	// TransactionType describes the type of the transaction. Set when
+	// Type is "user". Known values: "invoice_payment", "paid_media_payment",
+	// "gift_purchase", "premium_purchase", "business_account_transfer".
+	//
+	// optional
+	TransactionType string `json:"transaction_type,omitempty"`
 	// PaidMedia is the information about the paid media bought by the user.
 	// Set when Type is "user" and the transaction involves paid media.
 	//
@@ -3023,6 +3144,232 @@ type Gifts struct {
 	Gifts []Gift `json:"gifts"`
 }
 
+// UniqueGiftModel describes the model of a unique gift.
+type UniqueGiftModel struct {
+	// Name of the model.
+	Name string `json:"name"`
+	// Sticker representing the model.
+	Sticker Sticker `json:"sticker"`
+	// RarityPerMille is the number of unique gifts that receive this model
+	// for every 1000 gifts upgraded.
+	RarityPerMille int `json:"rarity_per_mille"`
+}
+
+// UniqueGiftSymbol describes the symbol shown on the pattern of a unique gift.
+type UniqueGiftSymbol struct {
+	// Name of the symbol.
+	Name string `json:"name"`
+	// Sticker representing the symbol.
+	Sticker Sticker `json:"sticker"`
+	// RarityPerMille is the number of unique gifts that receive this symbol
+	// for every 1000 gifts upgraded.
+	RarityPerMille int `json:"rarity_per_mille"`
+}
+
+// UniqueGiftBackdropColors describes the colors of a unique gift backdrop.
+type UniqueGiftBackdropColors struct {
+	// CenterColor is the color in the center of the backdrop in RGB format.
+	CenterColor int `json:"center_color"`
+	// EdgeColor is the color on the edges of the backdrop in RGB format.
+	EdgeColor int `json:"edge_color"`
+	// SymbolColor is the color used to paint the symbol in RGB format.
+	SymbolColor int `json:"symbol_color"`
+	// TextColor is the color for the text on the backdrop in RGB format.
+	TextColor int `json:"text_color"`
+}
+
+// UniqueGiftBackdrop describes the backdrop of a unique gift.
+type UniqueGiftBackdrop struct {
+	// Name of the backdrop.
+	Name string `json:"name"`
+	// Colors of the backdrop.
+	Colors UniqueGiftBackdropColors `json:"colors"`
+	// RarityPerMille is the number of unique gifts that receive this backdrop
+	// for every 1000 gifts upgraded.
+	RarityPerMille int `json:"rarity_per_mille"`
+}
+
+// UniqueGift describes a unique gift that was upgraded from a regular gift.
+type UniqueGift struct {
+	// BaseName is the human-readable name of the regular gift from which
+	// this unique gift was upgraded.
+	BaseName string `json:"base_name"`
+	// Name is the unique name of the gift.
+	Name string `json:"name"`
+	// Number is the unique number of the upgraded gift among gifts upgraded
+	// from the same regular gift.
+	Number int `json:"number"`
+	// Model of the unique gift.
+	Model UniqueGiftModel `json:"model"`
+	// Symbol of the unique gift.
+	Symbol UniqueGiftSymbol `json:"symbol"`
+	// Backdrop of the unique gift.
+	Backdrop UniqueGiftBackdrop `json:"backdrop"`
+}
+
+// GiftInfo describes a service message about a regular gift that was sent
+// or received.
+type GiftInfo struct {
+	// Gift is the information about the gift.
+	Gift Gift `json:"gift"`
+	// OwnedGiftID is the unique identifier of the received gift for the
+	// bot; only present for gifts received on behalf of business accounts.
+	//
+	// optional
+	OwnedGiftID string `json:"owned_gift_id,omitempty"`
+	// ConvertStarCount is the number of Telegram Stars that can be claimed
+	// by the receiver instead of the gift.
+	//
+	// optional
+	ConvertStarCount int `json:"convert_star_count,omitempty"`
+	// PrepaidUpgradeStarCount is the number of Telegram Stars that were
+	// prepaid by the sender for the ability to upgrade the gift.
+	//
+	// optional
+	PrepaidUpgradeStarCount int `json:"prepaid_upgrade_star_count,omitempty"`
+	// CanBeUpgraded is true, if the gift can be upgraded to a unique gift.
+	//
+	// optional
+	CanBeUpgraded bool `json:"can_be_upgraded,omitempty"`
+	// Text is the text of the message that was added to the gift.
+	//
+	// optional
+	Text string `json:"text,omitempty"`
+	// Entities are the special entities that appear in the text.
+	//
+	// optional
+	Entities []MessageEntity `json:"entities,omitempty"`
+	// IsPrivate is true, if the sender and gift text are shown only to the
+	// gift receiver; otherwise, everyone able to access the chat with the
+	// receiver will be able to see them.
+	//
+	// optional
+	IsPrivate bool `json:"is_private,omitempty"`
+}
+
+// Unique gift origin constants.
+const (
+	UniqueGiftOriginUpgrade  = "upgrade"
+	UniqueGiftOriginTransfer = "transfer"
+)
+
+// UniqueGiftInfo describes a service message about a unique gift that was
+// sent or received.
+type UniqueGiftInfo struct {
+	// Gift is the information about the unique gift.
+	Gift UniqueGift `json:"gift"`
+	// Origin of the gift. Currently, either "upgrade" or "transfer".
+	Origin string `json:"origin"`
+	// OwnedGiftID is the unique identifier of the received gift for the
+	// bot; only present for gifts received on behalf of business accounts.
+	//
+	// optional
+	OwnedGiftID string `json:"owned_gift_id,omitempty"`
+	// TransferStarCount is the number of Telegram Stars that must be paid
+	// to transfer the gift; omitted if the bot cannot transfer the gift.
+	//
+	// optional
+	TransferStarCount int `json:"transfer_star_count,omitempty"`
+}
+
+// Owned gift type constants.
+const (
+	OwnedGiftTypeRegular = "regular"
+	OwnedGiftTypeUnique  = "unique"
+)
+
+// OwnedGift describes a gift received and owned by a user or chat. Flat
+// polymorphic by Type:
+//   - "regular" → Gift (Gift), fields: ConvertStarCount, CanBeUpgraded, etc.
+//   - "unique"  → Gift (UniqueGift), fields: CanBeTransferred, TransferStarCount
+type OwnedGift struct {
+	// Type of the gift. One of "regular", "unique".
+	Type string `json:"type"`
+	// Gift is the regular gift, when Type is "regular".
+	//
+	// optional
+	Gift *Gift `json:"gift,omitempty"`
+	// UniqueGift is the unique gift, when Type is "unique".
+	//
+	// optional
+	UniqueGift *UniqueGift `json:"unique_gift,omitempty"`
+	// OwnedGiftID is the unique identifier of the gift for the bot; for
+	// gifts received on behalf of business accounts only.
+	//
+	// optional
+	OwnedGiftID string `json:"owned_gift_id,omitempty"`
+	// SenderUser is the sender of the gift, if it was sent by a user.
+	//
+	// optional
+	SenderUser *User `json:"sender_user,omitempty"`
+	// SendDate is the date the gift was sent in Unix time.
+	SendDate int `json:"send_date"`
+	// Text is the text of the message that was added to the gift.
+	//
+	// optional
+	Text string `json:"text,omitempty"`
+	// Entities are the special entities that appear in the text.
+	//
+	// optional
+	Entities []MessageEntity `json:"entities,omitempty"`
+	// IsPrivate is true, if the sender and gift text are shown only to the
+	// gift receiver.
+	//
+	// optional
+	IsPrivate bool `json:"is_private,omitempty"`
+	// IsSaved is true, if the gift is displayed on the account's profile
+	// page; for gifts received on behalf of business accounts only.
+	//
+	// optional
+	IsSaved bool `json:"is_saved,omitempty"`
+	// CanBeUpgraded is true, if the regular gift can be upgraded to a
+	// unique gift; for gifts received on behalf of business accounts only.
+	// Regular only.
+	//
+	// optional
+	CanBeUpgraded bool `json:"can_be_upgraded,omitempty"`
+	// WasRefunded is true, if the gift was refunded and isn't available
+	// anymore. Regular only.
+	//
+	// optional
+	WasRefunded bool `json:"was_refunded,omitempty"`
+	// ConvertStarCount is the number of Telegram Stars that can be claimed
+	// by the receiver instead of the gift. Regular only.
+	//
+	// optional
+	ConvertStarCount int `json:"convert_star_count,omitempty"`
+	// PrepaidUpgradeStarCount is the number of Telegram Stars that were
+	// paid by the sender for the ability to upgrade the gift. Regular only.
+	//
+	// optional
+	PrepaidUpgradeStarCount int `json:"prepaid_upgrade_star_count,omitempty"`
+	// CanBeTransferred is true, if the gift can be transferred to another
+	// owner; for gifts received on behalf of business accounts only.
+	// Unique only.
+	//
+	// optional
+	CanBeTransferred bool `json:"can_be_transferred,omitempty"`
+	// TransferStarCount is the number of Telegram Stars that must be paid
+	// to transfer the gift; omitted if the bot cannot transfer the gift.
+	// Unique only.
+	//
+	// optional
+	TransferStarCount int `json:"transfer_star_count,omitempty"`
+}
+
+// OwnedGifts contains the list of gifts received and owned by a user or chat.
+type OwnedGifts struct {
+	// TotalCount is the total number of gifts owned by the user or chat.
+	TotalCount int `json:"total_count"`
+	// Gifts is the list of gifts.
+	Gifts []OwnedGift `json:"gifts"`
+	// NextOffset is the offset for the next request. Empty if there are no
+	// more results.
+	//
+	// optional
+	NextOffset string `json:"next_offset,omitempty"`
+}
+
 // PreparedInlineMessage describes an inline message to be sent by a user of
 // a Mini App.
 type PreparedInlineMessage struct {
@@ -3031,6 +3378,203 @@ type PreparedInlineMessage struct {
 	// ExpirationDate is the Unix timestamp at which the message can no
 	// longer be used.
 	ExpirationDate int `json:"expiration_date"`
+}
+
+// InputProfilePhoto type constants.
+const (
+	InputProfilePhotoTypeStatic   = "static"
+	InputProfilePhotoTypeAnimated = "animated"
+)
+
+// InputProfilePhoto describes a profile photo to be set. Flat polymorphic
+// by Type:
+//   - "static"   → Photo is set
+//   - "animated" → Animation is set, MainFrameTimestamp optional
+type InputProfilePhoto struct {
+	// Type of the photo. One of "static", "animated".
+	Type string `json:"type"`
+	// Photo is the static profile photo. Profile photos can't be reused and
+	// can only be uploaded as a new file. Set when Type is "static".
+	//
+	// optional
+	Photo RequestFileData `json:"photo,omitempty"`
+	// Animation is the animated profile photo. Set when Type is "animated".
+	//
+	// optional
+	Animation RequestFileData `json:"animation,omitempty"`
+	// MainFrameTimestamp is the timestamp in seconds of the frame that will
+	// be used as the static profile photo. Set when Type is "animated".
+	// Defaults to 0.0.
+	//
+	// optional
+	MainFrameTimestamp float64 `json:"main_frame_timestamp,omitempty"`
+}
+
+// Input story content type constants.
+const (
+	InputStoryContentTypePhoto = "photo"
+	InputStoryContentTypeVideo = "video"
+)
+
+// InputStoryContent describes the content of a story to be posted. Flat
+// polymorphic by Type:
+//   - "photo" → Photo is set
+//   - "video" → Video is set; Duration, CoverFrameTimestamp, IsAnimation optional
+type InputStoryContent struct {
+	// Type of the content. One of "photo", "video".
+	Type string `json:"type"`
+	// Photo is the photo content. Set when Type is "photo".
+	//
+	// optional
+	Photo RequestFileData `json:"photo,omitempty"`
+	// Video is the video content. Set when Type is "video".
+	//
+	// optional
+	Video RequestFileData `json:"video,omitempty"`
+	// Duration is the precise duration of the video in seconds. 0-60.
+	// Video only.
+	//
+	// optional
+	Duration float64 `json:"duration,omitempty"`
+	// CoverFrameTimestamp is the timestamp in seconds of the frame that
+	// will be used as the static cover for the story. Defaults to 0.0.
+	// Video only.
+	//
+	// optional
+	CoverFrameTimestamp float64 `json:"cover_frame_timestamp,omitempty"`
+	// IsAnimation is true if the video has no sound. Video only.
+	//
+	// optional
+	IsAnimation bool `json:"is_animation,omitempty"`
+}
+
+// StoryAreaPosition describes the position of a clickable area within a
+// story.
+type StoryAreaPosition struct {
+	// XPercentage is the abscissa of the area's center, as a percentage of
+	// the media width.
+	XPercentage float64 `json:"x_percentage"`
+	// YPercentage is the ordinate of the area's center, as a percentage of
+	// the media height.
+	YPercentage float64 `json:"y_percentage"`
+	// WidthPercentage is the width of the area's rectangle, as a percentage
+	// of the media width.
+	WidthPercentage float64 `json:"width_percentage"`
+	// HeightPercentage is the height of the area's rectangle, as a percentage
+	// of the media height.
+	HeightPercentage float64 `json:"height_percentage"`
+	// RotationAngle is the clockwise rotation angle of the rectangle, in
+	// degrees; 0-360.
+	RotationAngle float64 `json:"rotation_angle"`
+	// CornerRadiusPercentage is the radius of the rectangle corner rounding,
+	// as a percentage of the media width.
+	CornerRadiusPercentage float64 `json:"corner_radius_percentage"`
+}
+
+// LocationAddress describes the physical address of a location.
+type LocationAddress struct {
+	// CountryCode is the two-letter ISO 3166-1 alpha-2 country code of the
+	// country where the location is located.
+	CountryCode string `json:"country_code"`
+	// State is the state of the location. Optional.
+	//
+	// optional
+	State string `json:"state,omitempty"`
+	// City is the city of the location. Optional.
+	//
+	// optional
+	City string `json:"city,omitempty"`
+	// Street is the street address of the location. Optional.
+	//
+	// optional
+	Street string `json:"street,omitempty"`
+}
+
+// Story area type constants.
+const (
+	StoryAreaTypeLocation          = "location"
+	StoryAreaTypeSuggestedReaction = "suggested_reaction"
+	StoryAreaTypeLink              = "link"
+	StoryAreaTypeWeather           = "weather"
+	StoryAreaTypeUniqueGift        = "unique_gift"
+)
+
+// StoryAreaType describes the type of a clickable area on a story. Flat
+// polymorphic by Type:
+//   - "location"           → Latitude, Longitude, Address
+//   - "suggested_reaction" → ReactionType, IsDark, IsFlipped
+//   - "link"               → URL
+//   - "weather"            → Temperature, Emoji, BackgroundColor
+//   - "unique_gift"        → Name
+type StoryAreaType struct {
+	// Type of the area. One of "location", "suggested_reaction", "link",
+	// "weather", "unique_gift".
+	Type string `json:"type"`
+	// Latitude in degrees. Set when Type is "location".
+	//
+	// optional
+	Latitude float64 `json:"latitude,omitempty"`
+	// Longitude in degrees. Set when Type is "location".
+	//
+	// optional
+	Longitude float64 `json:"longitude,omitempty"`
+	// Address of the location. Set when Type is "location".
+	//
+	// optional
+	Address *LocationAddress `json:"address,omitempty"`
+	// ReactionType is the type of the reaction. Set when Type is
+	// "suggested_reaction".
+	//
+	// optional
+	ReactionType *ReactionType `json:"reaction_type,omitempty"`
+	// IsDark is true, if the reaction area has a dark background. Set
+	// when Type is "suggested_reaction".
+	//
+	// optional
+	IsDark bool `json:"is_dark,omitempty"`
+	// IsFlipped is true, if reaction area corner is flipped. Set when
+	// Type is "suggested_reaction".
+	//
+	// optional
+	IsFlipped bool `json:"is_flipped,omitempty"`
+	// URL to be opened. Set when Type is "link".
+	//
+	// optional
+	URL string `json:"url,omitempty"`
+	// Temperature in degree Celsius. Set when Type is "weather".
+	//
+	// optional
+	Temperature float64 `json:"temperature,omitempty"`
+	// Emoji representing the weather. Set when Type is "weather".
+	//
+	// optional
+	Emoji string `json:"emoji,omitempty"`
+	// BackgroundColor is the color of the area background in the ARGB
+	// format. Set when Type is "weather".
+	//
+	// optional
+	BackgroundColor int `json:"background_color,omitempty"`
+	// Name of the unique gift. Set when Type is "unique_gift".
+	//
+	// optional
+	Name string `json:"name,omitempty"`
+}
+
+// StoryArea describes a clickable area on a story.
+type StoryArea struct {
+	// Position of the area.
+	Position StoryAreaPosition `json:"position"`
+	// Type of the area.
+	Type StoryAreaType `json:"type"`
+}
+
+// PaidMessagePriceChanged describes a service message about a change in the
+// price of paid messages within a chat.
+type PaidMessagePriceChanged struct {
+	// PaidMessageStarCount is the new number of Telegram Stars that must
+	// be paid by non-administrator users of the supergroup chat for each
+	// sent message.
+	PaidMessageStarCount int `json:"paid_message_star_count"`
 }
 
 // InputPaidMedia describes the paid media to be sent. Flat polymorphic by

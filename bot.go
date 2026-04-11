@@ -777,6 +777,62 @@ func (bot *BotAPI) GetStarTransactions(config GetStarTransactionsConfig) (StarTr
 	return st, err
 }
 
+// GetBusinessAccountStarBalance returns the amount of Telegram Stars owned
+// by a managed business account.
+func (bot *BotAPI) GetBusinessAccountStarBalance(config GetBusinessAccountStarBalanceConfig) (StarAmount, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return StarAmount{}, err
+	}
+
+	var amount StarAmount
+	err = json.Unmarshal(resp.Result, &amount)
+
+	return amount, err
+}
+
+// GetBusinessAccountGifts returns the gifts received and owned by a managed
+// business account.
+func (bot *BotAPI) GetBusinessAccountGifts(config GetBusinessAccountGiftsConfig) (OwnedGifts, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return OwnedGifts{}, err
+	}
+
+	var gifts OwnedGifts
+	err = json.Unmarshal(resp.Result, &gifts)
+
+	return gifts, err
+}
+
+// PostStory posts a story on behalf of a managed business account and
+// returns the posted Story.
+func (bot *BotAPI) PostStory(config PostStoryConfig) (Story, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return Story{}, err
+	}
+
+	var story Story
+	err = json.Unmarshal(resp.Result, &story)
+
+	return story, err
+}
+
+// EditStory edits a story previously posted by the bot and returns the
+// edited Story.
+func (bot *BotAPI) EditStory(config EditStoryConfig) (Story, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return Story{}, err
+	}
+
+	var story Story
+	err = json.Unmarshal(resp.Result, &story)
+
+	return story, err
+}
+
 // GetBusinessConnection returns information about the connection of the bot
 // with a business account.
 func (bot *BotAPI) GetBusinessConnection(config GetBusinessConnectionConfig) (BusinessConnection, error) {

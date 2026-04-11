@@ -3742,6 +3742,490 @@ func (config GetBusinessConnectionConfig) params() (Params, error) {
 	return params, nil
 }
 
+// ReadBusinessMessageConfig marks an incoming message as read on behalf of
+// a business account.
+type ReadBusinessMessageConfig struct {
+	BusinessConnectionID string
+	ChatID               int64
+	MessageID            int
+}
+
+func (ReadBusinessMessageConfig) method() string {
+	return "readBusinessMessage"
+}
+
+func (config ReadBusinessMessageConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonZero64("chat_id", config.ChatID)
+	params.AddNonZero("message_id", config.MessageID)
+
+	return params, nil
+}
+
+// DeleteBusinessMessagesConfig deletes messages on behalf of a business account.
+type DeleteBusinessMessagesConfig struct {
+	BusinessConnectionID string
+	MessageIDs           []int
+}
+
+func (DeleteBusinessMessagesConfig) method() string {
+	return "deleteBusinessMessages"
+}
+
+func (config DeleteBusinessMessagesConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	err := params.AddAny("message_ids", config.MessageIDs)
+
+	return params, err
+}
+
+// SetBusinessAccountNameConfig changes the first and last name of a managed
+// business account.
+type SetBusinessAccountNameConfig struct {
+	BusinessConnectionID string
+	FirstName            string
+	LastName             string
+}
+
+func (SetBusinessAccountNameConfig) method() string {
+	return "setBusinessAccountName"
+}
+
+func (config SetBusinessAccountNameConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params["first_name"] = config.FirstName
+	params.AddNonEmpty("last_name", config.LastName)
+
+	return params, nil
+}
+
+// SetBusinessAccountUsernameConfig changes the username of a managed
+// business account.
+type SetBusinessAccountUsernameConfig struct {
+	BusinessConnectionID string
+	Username             string
+}
+
+func (SetBusinessAccountUsernameConfig) method() string {
+	return "setBusinessAccountUsername"
+}
+
+func (config SetBusinessAccountUsernameConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonEmpty("username", config.Username)
+
+	return params, nil
+}
+
+// SetBusinessAccountBioConfig changes the bio of a managed business account.
+type SetBusinessAccountBioConfig struct {
+	BusinessConnectionID string
+	Bio                  string
+}
+
+func (SetBusinessAccountBioConfig) method() string {
+	return "setBusinessAccountBio"
+}
+
+func (config SetBusinessAccountBioConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonEmpty("bio", config.Bio)
+
+	return params, nil
+}
+
+// SetBusinessAccountProfilePhotoConfig changes the profile photo of a
+// managed business account.
+type SetBusinessAccountProfilePhotoConfig struct {
+	BusinessConnectionID string
+	Photo                InputProfilePhoto
+	IsPublic             bool
+}
+
+func (SetBusinessAccountProfilePhotoConfig) method() string {
+	return "setBusinessAccountProfilePhoto"
+}
+
+func (config SetBusinessAccountProfilePhotoConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddBool("is_public", config.IsPublic)
+	err := params.AddAny("photo", prepareInputProfilePhotoForParams(config.Photo))
+
+	return params, err
+}
+
+func (config SetBusinessAccountProfilePhotoConfig) files() []RequestFile {
+	return prepareInputProfilePhotoForFiles(config.Photo)
+}
+
+// RemoveBusinessAccountProfilePhotoConfig removes the current profile photo
+// of a managed business account.
+type RemoveBusinessAccountProfilePhotoConfig struct {
+	BusinessConnectionID string
+	IsPublic             bool
+}
+
+func (RemoveBusinessAccountProfilePhotoConfig) method() string {
+	return "removeBusinessAccountProfilePhoto"
+}
+
+func (config RemoveBusinessAccountProfilePhotoConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddBool("is_public", config.IsPublic)
+
+	return params, nil
+}
+
+// SetBusinessAccountGiftSettingsConfig changes the privacy settings pertaining
+// to incoming gifts in a managed business account.
+type SetBusinessAccountGiftSettingsConfig struct {
+	BusinessConnectionID string
+	ShowGiftButton       bool
+	AcceptedGiftTypes    AcceptedGiftTypes
+}
+
+func (SetBusinessAccountGiftSettingsConfig) method() string {
+	return "setBusinessAccountGiftSettings"
+}
+
+func (config SetBusinessAccountGiftSettingsConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddBool("show_gift_button", config.ShowGiftButton)
+	err := params.AddAny("accepted_gift_types", config.AcceptedGiftTypes)
+
+	return params, err
+}
+
+// GetBusinessAccountStarBalanceConfig returns the amount of Telegram Stars
+// owned by a managed business account.
+type GetBusinessAccountStarBalanceConfig struct {
+	BusinessConnectionID string
+}
+
+func (GetBusinessAccountStarBalanceConfig) method() string {
+	return "getBusinessAccountStarBalance"
+}
+
+func (config GetBusinessAccountStarBalanceConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+
+	return params, nil
+}
+
+// TransferBusinessAccountStarsConfig transfers Telegram Stars from the
+// business account balance to the bot's balance.
+type TransferBusinessAccountStarsConfig struct {
+	BusinessConnectionID string
+	StarCount            int
+}
+
+func (TransferBusinessAccountStarsConfig) method() string {
+	return "transferBusinessAccountStars"
+}
+
+func (config TransferBusinessAccountStarsConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonZero("star_count", config.StarCount)
+
+	return params, nil
+}
+
+// GetBusinessAccountGiftsConfig returns the gifts received and owned by a
+// managed business account.
+type GetBusinessAccountGiftsConfig struct {
+	BusinessConnectionID string
+	ExcludeUnsaved       bool
+	ExcludeSaved         bool
+	ExcludeUnlimited     bool
+	ExcludeLimited       bool
+	ExcludeUnique        bool
+	SortByPrice          bool
+	Offset               string
+	Limit                int
+}
+
+func (GetBusinessAccountGiftsConfig) method() string {
+	return "getBusinessAccountGifts"
+}
+
+func (config GetBusinessAccountGiftsConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddBool("exclude_unsaved", config.ExcludeUnsaved)
+	params.AddBool("exclude_saved", config.ExcludeSaved)
+	params.AddBool("exclude_unlimited", config.ExcludeUnlimited)
+	params.AddBool("exclude_limited", config.ExcludeLimited)
+	params.AddBool("exclude_unique", config.ExcludeUnique)
+	params.AddBool("sort_by_price", config.SortByPrice)
+	params.AddNonEmpty("offset", config.Offset)
+	params.AddNonZero("limit", config.Limit)
+
+	return params, nil
+}
+
+// ConvertGiftToStarsConfig converts a given regular gift to Telegram Stars.
+type ConvertGiftToStarsConfig struct {
+	BusinessConnectionID string
+	OwnedGiftID          string
+}
+
+func (ConvertGiftToStarsConfig) method() string {
+	return "convertGiftToStars"
+}
+
+func (config ConvertGiftToStarsConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params["owned_gift_id"] = config.OwnedGiftID
+
+	return params, nil
+}
+
+// UpgradeGiftConfig upgrades a regular gift to a unique one.
+type UpgradeGiftConfig struct {
+	BusinessConnectionID string
+	OwnedGiftID          string
+	KeepOriginalDetails  bool
+	StarCount            int
+}
+
+func (UpgradeGiftConfig) method() string {
+	return "upgradeGift"
+}
+
+func (config UpgradeGiftConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params["owned_gift_id"] = config.OwnedGiftID
+	params.AddBool("keep_original_details", config.KeepOriginalDetails)
+	params.AddNonZero("star_count", config.StarCount)
+
+	return params, nil
+}
+
+// TransferGiftConfig transfers an owned unique gift to another user.
+type TransferGiftConfig struct {
+	BusinessConnectionID string
+	OwnedGiftID          string
+	NewOwnerChatID       int64
+	StarCount            int
+}
+
+func (TransferGiftConfig) method() string {
+	return "transferGift"
+}
+
+func (config TransferGiftConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params["owned_gift_id"] = config.OwnedGiftID
+	params.AddNonZero64("new_owner_chat_id", config.NewOwnerChatID)
+	params.AddNonZero("star_count", config.StarCount)
+
+	return params, nil
+}
+
+// GiftPremiumSubscriptionConfig gifts a Telegram Premium subscription to
+// the given user.
+type GiftPremiumSubscriptionConfig struct {
+	UserID        int64
+	MonthCount    int
+	StarCount     int
+	Text          string
+	TextParseMode string
+	TextEntities  []MessageEntity
+}
+
+func (GiftPremiumSubscriptionConfig) method() string {
+	return "giftPremiumSubscription"
+}
+
+func (config GiftPremiumSubscriptionConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params.AddNonZero("month_count", config.MonthCount)
+	params.AddNonZero("star_count", config.StarCount)
+	params.AddNonEmpty("text", config.Text)
+	params.AddNonEmpty("text_parse_mode", config.TextParseMode)
+	err := params.AddAny("text_entities", config.TextEntities)
+
+	return params, err
+}
+
+// prepareInputProfilePhotoForParams rewrites the photo reference to attach://
+// if the data needs uploading.
+func prepareInputProfilePhotoForParams(p InputProfilePhoto) InputProfilePhoto {
+	if p.Photo != nil && p.Photo.NeedsUpload() {
+		p.Photo = fileAttach("attach://profile-photo")
+	}
+	if p.Animation != nil && p.Animation.NeedsUpload() {
+		p.Animation = fileAttach("attach://profile-photo")
+	}
+	return p
+}
+
+// prepareInputProfilePhotoForFiles returns the upload entry for a profile
+// photo whose data needs uploading.
+func prepareInputProfilePhotoForFiles(p InputProfilePhoto) []RequestFile {
+	var files []RequestFile
+	if p.Photo != nil && p.Photo.NeedsUpload() {
+		files = append(files, RequestFile{Name: "profile-photo", Data: p.Photo})
+	}
+	if p.Animation != nil && p.Animation.NeedsUpload() {
+		files = append(files, RequestFile{Name: "profile-photo", Data: p.Animation})
+	}
+	return files
+}
+
+// PostStoryConfig posts a story on behalf of a managed business account.
+type PostStoryConfig struct {
+	BusinessConnectionID string
+	Content              InputStoryContent
+	ActivePeriod         int
+	Caption              string
+	ParseMode            string
+	CaptionEntities      []MessageEntity
+	Areas                []StoryArea
+	PostToChatPage       bool
+	ProtectContent       bool
+}
+
+func (PostStoryConfig) method() string {
+	return "postStory"
+}
+
+func (config PostStoryConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonZero("active_period", config.ActivePeriod)
+	params.AddNonEmpty("caption", config.Caption)
+	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("post_to_chat_page", config.PostToChatPage)
+	params.AddBool("protect_content", config.ProtectContent)
+	if err := params.AddAny("content", prepareInputStoryContentForParams(config.Content)); err != nil {
+		return params, err
+	}
+	if err := params.AddAny("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err := params.AddAny("areas", config.Areas)
+
+	return params, err
+}
+
+func (config PostStoryConfig) files() []RequestFile {
+	return prepareInputStoryContentForFiles(config.Content)
+}
+
+// EditStoryConfig edits a story previously posted by the bot on behalf of
+// a managed business account.
+type EditStoryConfig struct {
+	BusinessConnectionID string
+	StoryID              int
+	Content              InputStoryContent
+	Caption              string
+	ParseMode            string
+	CaptionEntities      []MessageEntity
+	Areas                []StoryArea
+}
+
+func (EditStoryConfig) method() string {
+	return "editStory"
+}
+
+func (config EditStoryConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonZero("story_id", config.StoryID)
+	params.AddNonEmpty("caption", config.Caption)
+	params.AddNonEmpty("parse_mode", config.ParseMode)
+	if err := params.AddAny("content", prepareInputStoryContentForParams(config.Content)); err != nil {
+		return params, err
+	}
+	if err := params.AddAny("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err := params.AddAny("areas", config.Areas)
+
+	return params, err
+}
+
+func (config EditStoryConfig) files() []RequestFile {
+	return prepareInputStoryContentForFiles(config.Content)
+}
+
+// DeleteStoryConfig deletes a story previously posted by the bot on behalf
+// of a managed business account.
+type DeleteStoryConfig struct {
+	BusinessConnectionID string
+	StoryID              int
+}
+
+func (DeleteStoryConfig) method() string {
+	return "deleteStory"
+}
+
+func (config DeleteStoryConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonZero("story_id", config.StoryID)
+
+	return params, nil
+}
+
+// prepareInputStoryContentForParams rewrites the story content's photo/video
+// reference to attach:// if the data needs uploading.
+func prepareInputStoryContentForParams(c InputStoryContent) InputStoryContent {
+	if c.Photo != nil && c.Photo.NeedsUpload() {
+		c.Photo = fileAttach("attach://story-content")
+	}
+	if c.Video != nil && c.Video.NeedsUpload() {
+		c.Video = fileAttach("attach://story-content")
+	}
+	return c
+}
+
+// prepareInputStoryContentForFiles returns the upload entries for a story
+// content.
+func prepareInputStoryContentForFiles(c InputStoryContent) []RequestFile {
+	var files []RequestFile
+	if c.Photo != nil && c.Photo.NeedsUpload() {
+		files = append(files, RequestFile{Name: "story-content", Data: c.Photo})
+	}
+	if c.Video != nil && c.Video.NeedsUpload() {
+		files = append(files, RequestFile{Name: "story-content", Data: c.Video})
+	}
+	return files
+}
+
 // GetMyShortDescriptionConfig returns the current bot short description for
 // the given user language.
 type GetMyShortDescriptionConfig struct {
