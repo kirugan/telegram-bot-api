@@ -569,7 +569,13 @@ type ChatFullInfo struct {
 
 // Message represents a message.
 type Message struct {
-	// MessageID is a unique message identifier inside this chat
+	// MessageID is a unique message identifier inside this chat.
+	//
+	// Note: starting December 1, 2024, video messages sent, copied or
+	// forwarded to groups and channels with a sufficiently large audience
+	// may be scheduled by the server until the video is reencoded. Such
+	// messages come back with MessageID == 0 and cannot be referenced
+	// (replied to, edited, forwarded) until Telegram finishes processing.
 	MessageID int `json:"message_id"`
 	// BusinessConnectionID is the unique identifier of the business
 	// connection from which the message was received. If non-empty, the
@@ -1037,7 +1043,13 @@ func (m *Message) CommandArguments() string {
 	return m.Text[entity.Length+1:]
 }
 
-// MessageID represents a unique message identifier.
+// MessageID represents a unique message identifier. Returned by
+// forwardMessage(s), copyMessage(s), and sendMediaGroup.
+//
+// Note: for video forwards/copies to large groups and channels, Telegram
+// may schedule the message until the video finishes reencoding (since
+// December 1, 2024). In that case MessageID == 0 and the message cannot
+// be referenced until it is actually sent.
 type MessageID struct {
 	MessageID int `json:"message_id"`
 }
@@ -2801,11 +2813,22 @@ type TransactionPartner struct {
 	//
 	// optional
 	InvoicePayload string `json:"invoice_payload,omitempty"`
+	// SubscriptionPeriod is the number of seconds the subscription will be
+	// active for. Set when Type is "user" and the transaction is the
+	// payment for a subscription.
+	//
+	// optional
+	SubscriptionPeriod int `json:"subscription_period,omitempty"`
 	// PaidMedia is the information about the paid media bought by the user.
 	// Set when Type is "user" and the transaction involves paid media.
 	//
 	// optional
 	PaidMedia []PaidMedia `json:"paid_media,omitempty"`
+	// Gift is the gift sent to the user by the bot. Set when Type is
+	// "user" and the transaction is a gift purchase.
+	//
+	// optional
+	Gift *Gift `json:"gift,omitempty"`
 	// WithdrawalState is the state of the transaction if the transaction is
 	// outgoing. Set when Type is "fragment".
 	//
@@ -2898,6 +2921,43 @@ type PaidMediaPurchased struct {
 	From User `json:"from"`
 	// PaidMediaPayload is the bot-specified paid media payload.
 	PaidMediaPayload string `json:"paid_media_payload"`
+}
+
+// Gift represents a gift that can be sent by the bot.
+type Gift struct {
+	// ID is the unique identifier of the gift.
+	ID string `json:"id"`
+	// Sticker representing the gift.
+	Sticker Sticker `json:"sticker"`
+	// StarCount is the number of Telegram Stars that must be paid to send
+	// the sticker.
+	StarCount int `json:"star_count"`
+	// TotalCount is the total number of the gifts of this type that can
+	// be sent; for limited gifts only.
+	//
+	// optional
+	TotalCount int `json:"total_count,omitempty"`
+	// RemainingCount is the number of remaining gifts of this type that
+	// can be sent; for limited gifts only.
+	//
+	// optional
+	RemainingCount int `json:"remaining_count,omitempty"`
+}
+
+// Gifts represents a list of gifts.
+type Gifts struct {
+	// Gifts is the list of gifts.
+	Gifts []Gift `json:"gifts"`
+}
+
+// PreparedInlineMessage describes an inline message to be sent by a user of
+// a Mini App.
+type PreparedInlineMessage struct {
+	// ID is the unique identifier of the prepared message.
+	ID string `json:"id"`
+	// ExpirationDate is the Unix timestamp at which the message can no
+	// longer be used.
+	ExpirationDate int `json:"expiration_date"`
 }
 
 // InputPaidMedia describes the paid media to be sent. Flat polymorphic by
@@ -5160,6 +5220,21 @@ type SuccessfulPayment struct {
 	TotalAmount int `json:"total_amount"`
 	// InvoicePayload bot specified invoice payload
 	InvoicePayload string `json:"invoice_payload"`
+	// SubscriptionExpirationDate is the expiration date of the subscription,
+	// in Unix time. For recurring payments only.
+	//
+	// optional
+	SubscriptionExpirationDate int `json:"subscription_expiration_date,omitempty"`
+	// IsRecurring is true, if the payment is a recurring payment for a
+	// subscription.
+	//
+	// optional
+	IsRecurring bool `json:"is_recurring,omitempty"`
+	// IsFirstRecurring is true, if the payment is the first payment for a
+	// subscription.
+	//
+	// optional
+	IsFirstRecurring bool `json:"is_first_recurring,omitempty"`
 	// ShippingOptionID identifier of the shipping option chosen by the user
 	//
 	// optional

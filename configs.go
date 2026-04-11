@@ -1984,12 +1984,14 @@ func (config InvoiceConfig) method() string {
 
 // InvoiceLinkConfig contains information for createInvoiceLink request.
 type InvoiceLinkConfig struct {
+	BusinessConnectionID      string
 	Title                     string         // required
 	Description               string         // required
 	Payload                   string         // required
 	ProviderToken             string         // omit for payments in Telegram Stars
 	Currency                  string         // required ("XTR" for Telegram Stars)
 	Prices                    []LabeledPrice // required
+	SubscriptionPeriod        int            // in seconds; currently must be 2592000 (30 days) if set
 	MaxTipAmount              int
 	SuggestedTipAmounts       []int
 	ProviderData              json.RawMessage
@@ -2009,11 +2011,13 @@ type InvoiceLinkConfig struct {
 func (config InvoiceLinkConfig) params() (Params, error) {
 	params := make(Params)
 
+	params.AddNonEmpty("business_connection_id", config.BusinessConnectionID)
 	params["title"] = config.Title
 	params["description"] = config.Description
 	params["payload"] = config.Payload
 	params.AddNonEmpty("provider_token", config.ProviderToken)
 	params["currency"] = config.Currency
+	params.AddNonZero("subscription_period", config.SubscriptionPeriod)
 	if err := params.AddAny("prices", config.Prices); err != nil {
 		return params, err
 	}
@@ -2042,6 +2046,117 @@ func (config InvoiceLinkConfig) params() (Params, error) {
 
 func (config InvoiceLinkConfig) method() string {
 	return "createInvoiceLink"
+}
+
+// GetAvailableGiftsConfig returns the list of gifts that can be sent by the
+// bot to users.
+type GetAvailableGiftsConfig struct{}
+
+func (GetAvailableGiftsConfig) method() string {
+	return "getAvailableGifts"
+}
+
+func (GetAvailableGiftsConfig) params() (Params, error) {
+	return make(Params), nil
+}
+
+// SendGiftConfig sends a gift to a user.
+type SendGiftConfig struct {
+	UserID        int64
+	GiftID        string
+	Text          string
+	TextParseMode string
+	TextEntities  []MessageEntity
+}
+
+func (SendGiftConfig) method() string {
+	return "sendGift"
+}
+
+func (config SendGiftConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params["gift_id"] = config.GiftID
+	params.AddNonEmpty("text", config.Text)
+	params.AddNonEmpty("text_parse_mode", config.TextParseMode)
+	err := params.AddAny("text_entities", config.TextEntities)
+
+	return params, err
+}
+
+// SetUserEmojiStatusConfig changes the emoji status for a given user that
+// previously allowed the bot to manage their emoji status.
+type SetUserEmojiStatusConfig struct {
+	UserID                    int64
+	EmojiStatusCustomEmojiID  string
+	EmojiStatusExpirationDate int
+}
+
+func (SetUserEmojiStatusConfig) method() string {
+	return "setUserEmojiStatus"
+}
+
+func (config SetUserEmojiStatusConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params.AddNonEmpty("emoji_status_custom_emoji_id", config.EmojiStatusCustomEmojiID)
+	params.AddNonZero("emoji_status_expiration_date", config.EmojiStatusExpirationDate)
+
+	return params, nil
+}
+
+// EditUserStarSubscriptionConfig cancels or reenables an active Telegram
+// Star subscription.
+type EditUserStarSubscriptionConfig struct {
+	UserID                  int64
+	TelegramPaymentChargeID string
+	IsCanceled              bool
+}
+
+func (EditUserStarSubscriptionConfig) method() string {
+	return "editUserStarSubscription"
+}
+
+func (config EditUserStarSubscriptionConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params["telegram_payment_charge_id"] = config.TelegramPaymentChargeID
+	params.AddBool("is_canceled", config.IsCanceled)
+
+	return params, nil
+}
+
+// SavePreparedInlineMessageConfig stores a message that can be sent by a
+// user of a Mini App.
+type SavePreparedInlineMessageConfig struct {
+	UserID            int64
+	Result            interface{} // InlineQueryResult
+	AllowUserChats    bool
+	AllowBotChats     bool
+	AllowGroupChats   bool
+	AllowChannelChats bool
+}
+
+func (SavePreparedInlineMessageConfig) method() string {
+	return "savePreparedInlineMessage"
+}
+
+func (config SavePreparedInlineMessageConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	if err := params.AddAny("result", config.Result); err != nil {
+		return params, err
+	}
+	params.AddBool("allow_user_chats", config.AllowUserChats)
+	params.AddBool("allow_bot_chats", config.AllowBotChats)
+	params.AddBool("allow_group_chats", config.AllowGroupChats)
+	params.AddBool("allow_channel_chats", config.AllowChannelChats)
+
+	return params, nil
 }
 
 // GetStarTransactionsConfig returns the bot's Telegram Star transactions in

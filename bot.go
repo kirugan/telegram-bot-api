@@ -735,6 +735,34 @@ func (bot *BotAPI) CopyMessages(config CopyMessagesConfig) ([]MessageID, error) 
 	return ids, err
 }
 
+// GetAvailableGifts returns the list of gifts that can be sent by the bot
+// to users.
+func (bot *BotAPI) GetAvailableGifts() (Gifts, error) {
+	resp, err := bot.Request(GetAvailableGiftsConfig{})
+	if err != nil {
+		return Gifts{}, err
+	}
+
+	var gifts Gifts
+	err = json.Unmarshal(resp.Result, &gifts)
+
+	return gifts, err
+}
+
+// SavePreparedInlineMessage stores a message that can be sent by a user of
+// a Mini App and returns a PreparedInlineMessage.
+func (bot *BotAPI) SavePreparedInlineMessage(config SavePreparedInlineMessageConfig) (PreparedInlineMessage, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return PreparedInlineMessage{}, err
+	}
+
+	var msg PreparedInlineMessage
+	err = json.Unmarshal(resp.Result, &msg)
+
+	return msg, err
+}
+
 // GetStarTransactions returns the bot's Telegram Star transactions in
 // chronological order.
 func (bot *BotAPI) GetStarTransactions(config GetStarTransactionsConfig) (StarTransactions, error) {
