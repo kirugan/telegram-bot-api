@@ -3108,6 +3108,88 @@ func (config DeleteChatStickerSetConfig) params() (Params, error) {
 	return params, nil
 }
 
+// SendPaidMediaConfig sends paid media to a channel or private chat.
+type SendPaidMediaConfig struct {
+	BaseChat
+	// StarCount is the number of Telegram Stars that must be paid to buy
+	// access to the media; 1-2500.
+	StarCount int
+	// Media is the list of media to be sent; 1-10 items.
+	Media []InputPaidMedia
+	// Caption of the media to be sent, 0-1024 characters after entities parsing.
+	Caption string
+	// ParseMode mode for parsing entities in the caption.
+	ParseMode string
+	// CaptionEntities is a list of special entities that appear in the caption.
+	CaptionEntities []MessageEntity
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the message media.
+	ShowCaptionAboveMedia bool
+}
+
+func (config SendPaidMediaConfig) method() string {
+	return "sendPaidMedia"
+}
+
+func (config SendPaidMediaConfig) params() (Params, error) {
+	params, err := config.BaseChat.params()
+	if err != nil {
+		return params, err
+	}
+
+	params.AddNonZero("star_count", config.StarCount)
+	params.AddNonEmpty("caption", config.Caption)
+	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
+	if err = params.AddAny("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err = params.AddAny("media", prepareInputPaidMediaForParams(config.Media))
+
+	return params, err
+}
+
+func (config SendPaidMediaConfig) files() []RequestFile {
+	return prepareInputPaidMediaForFiles(config.Media)
+}
+
+// prepareInputPaidMediaForParams rewrites InputPaidMedia entries whose Media
+// or Thumbnail need uploading to attach:// references, mirroring
+// prepareInputMediaForParams for regular media groups.
+func prepareInputPaidMediaForParams(items []InputPaidMedia) []InputPaidMedia {
+	out := make([]InputPaidMedia, len(items))
+	for i, m := range items {
+		if m.Media != nil && m.Media.NeedsUpload() {
+			m.Media = fileAttach(fmt.Sprintf("attach://paid-media-%d", i))
+		}
+		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
+			m.Thumbnail = fileAttach(fmt.Sprintf("attach://paid-media-%d-thumbnail", i))
+		}
+		out[i] = m
+	}
+	return out
+}
+
+// prepareInputPaidMediaForFiles returns the upload entries for items in the
+// slice whose Media or Thumbnail need uploading.
+func prepareInputPaidMediaForFiles(items []InputPaidMedia) []RequestFile {
+	var files []RequestFile
+	for i, m := range items {
+		if m.Media != nil && m.Media.NeedsUpload() {
+			files = append(files, RequestFile{
+				Name: fmt.Sprintf("paid-media-%d", i),
+				Data: m.Media,
+			})
+		}
+		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
+			files = append(files, RequestFile{
+				Name: fmt.Sprintf("paid-media-%d-thumbnail", i),
+				Data: m.Thumbnail,
+			})
+		}
+	}
+	return files
+}
+
 // MediaGroupConfig allows you to send a group of media.
 //
 // Media consist of InputMedia items (InputMediaPhoto, InputMediaVideo).

@@ -551,6 +551,11 @@ type ChatFullInfo struct {
 	// MaxReactionCount is the maximum number of reactions that can be set
 	// on a message in the chat.
 	MaxReactionCount int `json:"max_reaction_count"`
+	// CanSendPaidMedia is true, if paid media messages can be sent or
+	// forwarded to the channel chat. Channel chats only.
+	//
+	// optional
+	CanSendPaidMedia bool `json:"can_send_paid_media,omitempty"`
 }
 
 // Message represents a message.
@@ -695,6 +700,10 @@ type Message struct {
 	//
 	// optional
 	Photo []PhotoSize `json:"photo,omitempty"`
+	// PaidMedia is the paid media attached to the message.
+	//
+	// optional
+	PaidMedia *PaidMediaInfo `json:"paid_media,omitempty"`
 	// Sticker message is a sticker, information about the sticker;
 	//
 	// optional
@@ -2723,23 +2732,31 @@ type RevenueWithdrawalState struct {
 
 // Transaction partner type constants.
 const (
-	TransactionPartnerTypeUser     = "user"
-	TransactionPartnerTypeFragment = "fragment"
-	TransactionPartnerTypeOther    = "other"
+	TransactionPartnerTypeUser         = "user"
+	TransactionPartnerTypeFragment     = "fragment"
+	TransactionPartnerTypeTelegramAds  = "telegram_ads"
+	TransactionPartnerTypeOther        = "other"
 )
 
 // TransactionPartner describes the source or recipient of a StarTransaction.
 // Flat polymorphic by Type:
-//   - "user"     → User is set
-//   - "fragment" → WithdrawalState is set
-//   - "other"    → (no extra fields)
+//   - "user"         → User is set; InvoicePayload optionally set
+//   - "fragment"     → WithdrawalState is set
+//   - "telegram_ads" → (no extra fields)
+//   - "other"        → (no extra fields)
 type TransactionPartner struct {
-	// Type of the transaction partner. One of "user", "fragment", "other".
+	// Type of the transaction partner. One of "user", "fragment",
+	// "telegram_ads", "other".
 	Type string `json:"type"`
 	// User that the transaction involves. Set when Type is "user".
 	//
 	// optional
 	User *User `json:"user,omitempty"`
+	// InvoicePayload is the bot-specified invoice payload. Set when Type is
+	// "user".
+	//
+	// optional
+	InvoicePayload string `json:"invoice_payload,omitempty"`
 	// WithdrawalState is the state of the transaction if the transaction is
 	// outgoing. Set when Type is "fragment".
 	//
@@ -2774,6 +2791,88 @@ type StarTransaction struct {
 type StarTransactions struct {
 	// Transactions is the list of transactions.
 	Transactions []StarTransaction `json:"transactions"`
+}
+
+// Paid media type constants.
+const (
+	PaidMediaTypePreview = "preview"
+	PaidMediaTypePhoto   = "photo"
+	PaidMediaTypeVideo   = "video"
+)
+
+// PaidMedia describes a media received in a paid message. Flat polymorphic
+// by Type:
+//   - "preview" → Width, Height, Duration (optional)
+//   - "photo"   → Photo is set
+//   - "video"   → Video is set
+type PaidMedia struct {
+	// Type of the paid media. One of "preview", "photo", "video".
+	Type string `json:"type"`
+	// Width is the media width as defined by the sender. Set when Type is
+	// "preview".
+	//
+	// optional
+	Width int `json:"width,omitempty"`
+	// Height is the media height as defined by the sender. Set when Type is
+	// "preview".
+	//
+	// optional
+	Height int `json:"height,omitempty"`
+	// Duration is the duration of the media in seconds as defined by the
+	// sender. Set when Type is "preview".
+	//
+	// optional
+	Duration int `json:"duration,omitempty"`
+	// Photo is the photo media. Set when Type is "photo".
+	//
+	// optional
+	Photo []PhotoSize `json:"photo,omitempty"`
+	// Video is the video media. Set when Type is "video".
+	//
+	// optional
+	Video *Video `json:"video,omitempty"`
+}
+
+// PaidMediaInfo describes the paid media added to a message.
+type PaidMediaInfo struct {
+	// StarCount is the number of Telegram Stars that must be paid to buy
+	// access to the media.
+	StarCount int `json:"star_count"`
+	// PaidMedia is the information about the paid media.
+	PaidMedia []PaidMedia `json:"paid_media"`
+}
+
+// InputPaidMedia describes the paid media to be sent. Flat polymorphic by
+// Type:
+//   - "photo" → Media is set
+//   - "video" → Media, Thumbnail, Width, Height, Duration, SupportsStreaming
+type InputPaidMedia struct {
+	// Type of the media. One of "photo", "video".
+	Type string `json:"type"`
+	// Media is the file to send. Pass a file_id or URL, or upload a new one
+	// via FilePath/FileBytes/FileReader.
+	Media RequestFileData `json:"media"`
+	// Thumbnail of the file (video only).
+	//
+	// optional
+	Thumbnail RequestFileData `json:"thumbnail,omitempty"`
+	// Width of the video.
+	//
+	// optional
+	Width int `json:"width,omitempty"`
+	// Height of the video.
+	//
+	// optional
+	Height int `json:"height,omitempty"`
+	// Duration of the video in seconds.
+	//
+	// optional
+	Duration int `json:"duration,omitempty"`
+	// SupportsStreaming is true if the uploaded video is suitable for
+	// streaming. Video only.
+	//
+	// optional
+	SupportsStreaming bool `json:"supports_streaming,omitempty"`
 }
 
 // SharedUser contains information about a user that was shared with the bot
@@ -2928,6 +3027,10 @@ type ExternalReplyInfo struct {
 	//
 	// optional
 	Photo []PhotoSize `json:"photo,omitempty"`
+	// PaidMedia is set if the message contains paid media.
+	//
+	// optional
+	PaidMedia *PaidMediaInfo `json:"paid_media,omitempty"`
 	// Sticker is set if the message is a sticker.
 	//
 	// optional
