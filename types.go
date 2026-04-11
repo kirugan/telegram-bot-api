@@ -366,6 +366,17 @@ type Chat struct {
 	//
 	// optional
 	HasAggressiveAntiSpamEnabled bool `json:"has_aggressive_anti_spam_enabled,omitempty"`
+	// UnrestrictBoostCount is the minimum number of boosts that a non-administrator
+	// user needs to add to the chat in order to ignore slow mode and chat
+	// permissions. Returned only in getChat.
+	//
+	// optional
+	UnrestrictBoostCount int `json:"unrestrict_boost_count,omitempty"`
+	// CustomEmojiStickerSetName is the name of the chat's custom emoji sticker
+	// set. Returned only in getChat.
+	//
+	// optional
+	CustomEmojiStickerSetName string `json:"custom_emoji_sticker_set_name,omitempty"`
 	// Photo is a chat photo
 	Photo *ChatPhoto `json:"photo"`
 	// Bio is the bio of the other party in a private chat. Returned only in
@@ -522,6 +533,11 @@ type Message struct {
 	//
 	// optional
 	IsAutomaticForward bool `json:"is_automatic_forward,omitempty"`
+	// SenderBoostCount is the number of boosts added by the user, if the
+	// sender of the message boosted the chat.
+	//
+	// optional
+	SenderBoostCount int `json:"sender_boost_count,omitempty"`
 	// ReplyToMessage for replies, the original message.
 	// Note that the Message object in this field will not contain further ReplyToMessage fields
 	// even if it itself is a reply;
@@ -537,6 +553,10 @@ type Message struct {
 	//
 	// optional
 	Quote *TextQuote `json:"quote,omitempty"`
+	// ReplyToStory is the story that this message is a reply to.
+	//
+	// optional
+	ReplyToStory *Story `json:"reply_to_story,omitempty"`
 	// ViaBot through which the message was sent;
 	//
 	// optional
@@ -801,6 +821,10 @@ type Message struct {
 	//
 	// optional
 	WriteAccessAllowed *WriteAccessAllowed `json:"write_access_allowed,omitempty"`
+	// BoostAdded is a service message: a user boosted the chat.
+	//
+	// optional
+	BoostAdded *ChatBoostAdded `json:"boost_added,omitempty"`
 	// GiveawayCreated is a service message: a scheduled giveaway was created.
 	//
 	// optional
@@ -2301,8 +2325,19 @@ type ChatPermissions struct {
 	CanManageTopics bool `json:"can_manage_topics,omitempty"`
 }
 
-// Story represents a forwarded story. Currently holds no information.
-type Story struct{}
+// Story represents a story.
+type Story struct {
+	// Chat that posted the story.
+	Chat Chat `json:"chat"`
+	// ID is the unique identifier of the story in the chat.
+	ID int `json:"id"`
+}
+
+// ChatBoostAdded represents a service message about a user boosting a chat.
+type ChatBoostAdded struct {
+	// BoostCount is the number of boosts added by the user.
+	BoostCount int `json:"boost_count"`
+}
 
 // Reaction type constants.
 const (
