@@ -261,6 +261,11 @@ type User struct {
 	//
 	// optional
 	HasMainWebApp bool `json:"has_main_web_app,omitempty"`
+	// HasTopicsEnabled is true, if forum topic mode is enabled for the bot
+	// in private chats.
+	//
+	// optional
+	HasTopicsEnabled bool `json:"has_topics_enabled,omitempty"`
 	// FirstName user's or bot's first name
 	FirstName string `json:"first_name"`
 	// LastName user's or bot's last name
@@ -576,6 +581,21 @@ type ChatFullInfo struct {
 	//
 	// optional
 	ParentChat *Chat `json:"parent_chat,omitempty"`
+	// Rating is the rating of the user in a private chat.
+	//
+	// optional
+	Rating *UserRating `json:"rating,omitempty"`
+	// PaidMessageStarCount is the number of Telegram Stars that must be
+	// paid by non-administrator users of the supergroup chat for each sent
+	// message.
+	//
+	// optional
+	PaidMessageStarCount int `json:"paid_message_star_count,omitempty"`
+	// UniqueGiftColors defines the color scheme for the chat's name, replies
+	// to messages, and link previews based on a unique gift.
+	//
+	// optional
+	UniqueGiftColors *UniqueGiftColors `json:"unique_gift_colors,omitempty"`
 }
 
 // Message represents a message.
@@ -965,6 +985,11 @@ type Message struct {
 	//
 	// optional
 	UniqueGift *UniqueGiftInfo `json:"unique_gift,omitempty"`
+	// GiftUpgradeSent is a service message about a gift upgrade sent to
+	// another user.
+	//
+	// optional
+	GiftUpgradeSent *GiftInfo `json:"gift_upgrade_sent,omitempty"`
 	// PaidMessagePriceChanged is a service message about a change in the
 	// price of paid messages within the chat.
 	//
@@ -2757,6 +2782,10 @@ type AcceptedGiftTypes struct {
 	// PremiumSubscription is true, if a Telegram Premium subscription is
 	// accepted.
 	PremiumSubscription bool `json:"premium_subscription"`
+	// GiftsFromChannels is true, if gifts published by channels are accepted.
+	//
+	// optional
+	GiftsFromChannels bool `json:"gifts_from_channels,omitempty"`
 }
 
 // BusinessMessagesDeleted is received when messages are deleted from a
@@ -3193,6 +3222,73 @@ type PaidMediaPurchased struct {
 	PaidMediaPayload string `json:"paid_media_payload"`
 }
 
+// UniqueGiftColors describes the color scheme for a user's name, replies
+// to messages, and link previews based on a unique gift.
+//
+// Note: the exact field layout of this type is not fully verified. When
+// serializing or deserializing you may need to use the Raw payload.
+type UniqueGiftColors struct {
+	Raw json.RawMessage `json:"-"`
+}
+
+// UnmarshalJSON preserves the raw JSON payload for UniqueGiftColors.
+func (u *UniqueGiftColors) UnmarshalJSON(b []byte) error {
+	u.Raw = append(u.Raw[:0], b...)
+	return nil
+}
+
+// MarshalJSON emits the raw JSON payload, or `null` if unset.
+func (u UniqueGiftColors) MarshalJSON() ([]byte, error) {
+	if len(u.Raw) == 0 {
+		return []byte("null"), nil
+	}
+	return u.Raw, nil
+}
+
+// GiftBackground describes the background associated with a gift.
+//
+// Note: the exact field layout of this type is not fully verified. When
+// serializing or deserializing you may need to use the Raw payload.
+type GiftBackground struct {
+	Raw json.RawMessage `json:"-"`
+}
+
+// UnmarshalJSON preserves the raw JSON payload for GiftBackground.
+func (g *GiftBackground) UnmarshalJSON(b []byte) error {
+	g.Raw = append(g.Raw[:0], b...)
+	return nil
+}
+
+// MarshalJSON emits the raw JSON payload, or `null` if unset.
+func (g GiftBackground) MarshalJSON() ([]byte, error) {
+	if len(g.Raw) == 0 {
+		return []byte("null"), nil
+	}
+	return g.Raw, nil
+}
+
+// UserRating describes the rating of a user in a private chat.
+//
+// Note: the exact field layout of this type is not fully verified. When
+// serializing or deserializing you may need to use the Raw payload.
+type UserRating struct {
+	Raw json.RawMessage `json:"-"`
+}
+
+// UnmarshalJSON preserves the raw JSON payload for UserRating.
+func (u *UserRating) UnmarshalJSON(b []byte) error {
+	u.Raw = append(u.Raw[:0], b...)
+	return nil
+}
+
+// MarshalJSON emits the raw JSON payload, or `null` if unset.
+func (u UserRating) MarshalJSON() ([]byte, error) {
+	if len(u.Raw) == 0 {
+		return []byte("null"), nil
+	}
+	return u.Raw, nil
+}
+
 // Gift represents a gift that can be sent by the bot.
 type Gift struct {
 	// ID is the unique identifier of the gift.
@@ -3217,6 +3313,34 @@ type Gift struct {
 	//
 	// optional
 	RemainingCount int `json:"remaining_count,omitempty"`
+	// PersonalTotalCount is the total number of gifts of this type that
+	// can be sent by the bot to each user.
+	//
+	// optional
+	PersonalTotalCount int `json:"personal_total_count,omitempty"`
+	// PersonalRemainingCount is the number of remaining gifts of this type
+	// that can be sent by the bot to each user.
+	//
+	// optional
+	PersonalRemainingCount int `json:"personal_remaining_count,omitempty"`
+	// IsPremium is true, if the gift can only be sent by bots owned by
+	// users with an active Telegram Premium subscription.
+	//
+	// optional
+	IsPremium bool `json:"is_premium,omitempty"`
+	// HasColors is true, if the gift defines a color scheme.
+	//
+	// optional
+	HasColors bool `json:"has_colors,omitempty"`
+	// UniqueGiftVariantCount is the total number of variants of unique
+	// gifts that can be upgraded from the gift.
+	//
+	// optional
+	UniqueGiftVariantCount int `json:"unique_gift_variant_count,omitempty"`
+	// Background describing the gift background.
+	//
+	// optional
+	Background *GiftBackground `json:"background,omitempty"`
 	// PublisherChat is the chat that published the gift.
 	//
 	// optional
@@ -3284,12 +3408,31 @@ type UniqueGift struct {
 	// Number is the unique number of the upgraded gift among gifts upgraded
 	// from the same regular gift.
 	Number int `json:"number"`
+	// GiftID is the identifier of the regular gift that was upgraded to
+	// this unique gift.
+	//
+	// optional
+	GiftID string `json:"gift_id,omitempty"`
+	// IsFromBlockchain is true, if the gift was assigned from the TON
+	// blockchain.
+	//
+	// optional
+	IsFromBlockchain bool `json:"is_from_blockchain,omitempty"`
+	// IsPremium is true, if the gift can only be owned by users with an
+	// active Telegram Premium subscription.
+	//
+	// optional
+	IsPremium bool `json:"is_premium,omitempty"`
 	// Model of the unique gift.
 	Model UniqueGiftModel `json:"model"`
 	// Symbol of the unique gift.
 	Symbol UniqueGiftSymbol `json:"symbol"`
 	// Backdrop of the unique gift.
 	Backdrop UniqueGiftBackdrop `json:"backdrop"`
+	// Colors defines the color scheme based on this unique gift.
+	//
+	// optional
+	Colors *UniqueGiftColors `json:"colors,omitempty"`
 	// PublisherChat is the chat that published the underlying regular gift.
 	//
 	// optional
@@ -3334,13 +3477,25 @@ type GiftInfo struct {
 	//
 	// optional
 	IsPrivate bool `json:"is_private,omitempty"`
+	// IsUpgradeSeparate is true, if the gift upgrade to a unique gift can
+	// be requested separately by the receiver.
+	//
+	// optional
+	IsUpgradeSeparate bool `json:"is_upgrade_separate,omitempty"`
+	// UniqueGiftNumber is the sequential number of the unique gift among
+	// gifts upgraded from the same regular gift.
+	//
+	// optional
+	UniqueGiftNumber int `json:"unique_gift_number,omitempty"`
 }
 
 // Unique gift origin constants.
 const (
-	UniqueGiftOriginUpgrade  = "upgrade"
-	UniqueGiftOriginTransfer = "transfer"
-	UniqueGiftOriginResale   = "resale"
+	UniqueGiftOriginUpgrade        = "upgrade"
+	UniqueGiftOriginTransfer       = "transfer"
+	UniqueGiftOriginResale         = "resale"
+	UniqueGiftOriginGiftedUpgrade  = "gifted_upgrade"
+	UniqueGiftOriginOffer          = "offer"
 )
 
 // UniqueGiftInfo describes a service message about a unique gift that was
@@ -3348,13 +3503,19 @@ const (
 type UniqueGiftInfo struct {
 	// Gift is the information about the unique gift.
 	Gift UniqueGift `json:"gift"`
-	// Origin of the gift. One of "upgrade", "transfer", "resale".
+	// Origin of the gift. One of "upgrade", "transfer", "resale",
+	// "gifted_upgrade", "offer".
 	Origin string `json:"origin"`
-	// LastResaleStarCount is the number of Telegram Stars the gift was
-	// resold for; for gifts bought on a resale market only.
+	// LastResaleCurrency is the currency in which the gift was last resold
+	// on a resale market; for gifts with origin "resale" only.
 	//
 	// optional
-	LastResaleStarCount int `json:"last_resale_star_count,omitempty"`
+	LastResaleCurrency string `json:"last_resale_currency,omitempty"`
+	// LastResaleAmount is the amount in the smallest units of the currency
+	// for which the gift was last resold; for gifts with origin "resale" only.
+	//
+	// optional
+	LastResaleAmount int `json:"last_resale_amount,omitempty"`
 	// OwnedGiftID is the unique identifier of the received gift for the
 	// bot; only present for gifts received on behalf of business accounts.
 	//
@@ -3438,6 +3599,16 @@ type OwnedGift struct {
 	//
 	// optional
 	PrepaidUpgradeStarCount int `json:"prepaid_upgrade_star_count,omitempty"`
+	// IsUpgradeSeparate is true, if the gift upgrade to a unique gift can
+	// be requested separately by the receiver. Regular only.
+	//
+	// optional
+	IsUpgradeSeparate bool `json:"is_upgrade_separate,omitempty"`
+	// UniqueGiftNumber is the sequential number of the unique gift among
+	// gifts upgraded from the same regular gift. Regular only.
+	//
+	// optional
+	UniqueGiftNumber int `json:"unique_gift_number,omitempty"`
 	// CanBeTransferred is true, if the gift can be transferred to another
 	// owner; for gifts received on behalf of business accounts only.
 	// Unique only.
@@ -3838,6 +4009,11 @@ type ChecklistTask struct {
 	//
 	// optional
 	CompletedByUser *User `json:"completed_by_user,omitempty"`
+	// CompletedByChat is the chat that completed the task on behalf of
+	// an anonymous user.
+	//
+	// optional
+	CompletedByChat *Chat `json:"completed_by_chat,omitempty"`
 	// CompletionDate is the point in time (Unix timestamp) when the task
 	// was completed; 0 for tasks that weren't completed.
 	//
@@ -4564,6 +4740,12 @@ type ForumTopic struct {
 	MessageThreadID int `json:"message_thread_id"`
 	// Name of the topic
 	Name string `json:"name"`
+	// IsNameImplicit is true, if the name of the topic was implicitly
+	// derived from the content of the first message, e.g. for topics
+	// created automatically in private chats.
+	//
+	// optional
+	IsNameImplicit bool `json:"is_name_implicit,omitempty"`
 	// IconColor is the color of the topic icon in RGB format
 	IconColor int `json:"icon_color"`
 	// IconCustomEmojiID is the unique identifier of the custom emoji shown
@@ -4578,6 +4760,11 @@ type ForumTopic struct {
 type ForumTopicCreated struct {
 	// Name of the topic
 	Name string `json:"name"`
+	// IsNameImplicit is true, if the name of the topic was implicitly
+	// derived from the content of the first message.
+	//
+	// optional
+	IsNameImplicit bool `json:"is_name_implicit,omitempty"`
 	// IconColor is the color of the topic icon in RGB format
 	IconColor int `json:"icon_color"`
 	// IconCustomEmojiID is the unique identifier of the custom emoji shown

@@ -4007,15 +4007,17 @@ func (config TransferBusinessAccountStarsConfig) params() (Params, error) {
 // GetBusinessAccountGiftsConfig returns the gifts received and owned by a
 // managed business account.
 type GetBusinessAccountGiftsConfig struct {
-	BusinessConnectionID string
-	ExcludeUnsaved       bool
-	ExcludeSaved         bool
-	ExcludeUnlimited     bool
-	ExcludeLimited       bool
-	ExcludeUnique        bool
-	SortByPrice          bool
-	Offset               string
-	Limit                int
+	BusinessConnectionID         string
+	ExcludeUnsaved               bool
+	ExcludeSaved                 bool
+	ExcludeUnlimited             bool
+	ExcludeLimitedUpgradable     bool
+	ExcludeLimitedNonUpgradable  bool
+	ExcludeUnique                bool
+	ExcludeFromBlockchain        bool
+	SortByPrice                  bool
+	Offset                       string
+	Limit                        int
 }
 
 func (GetBusinessAccountGiftsConfig) method() string {
@@ -4029,8 +4031,10 @@ func (config GetBusinessAccountGiftsConfig) params() (Params, error) {
 	params.AddBool("exclude_unsaved", config.ExcludeUnsaved)
 	params.AddBool("exclude_saved", config.ExcludeSaved)
 	params.AddBool("exclude_unlimited", config.ExcludeUnlimited)
-	params.AddBool("exclude_limited", config.ExcludeLimited)
+	params.AddBool("exclude_limited_upgradable", config.ExcludeLimitedUpgradable)
+	params.AddBool("exclude_limited_non_upgradable", config.ExcludeLimitedNonUpgradable)
 	params.AddBool("exclude_unique", config.ExcludeUnique)
+	params.AddBool("exclude_from_blockchain", config.ExcludeFromBlockchain)
 	params.AddBool("sort_by_price", config.SortByPrice)
 	params.AddNonEmpty("offset", config.Offset)
 	params.AddNonZero("limit", config.Limit)
@@ -4308,6 +4312,122 @@ func (GetMyStarBalanceConfig) method() string {
 
 func (GetMyStarBalanceConfig) params() (Params, error) {
 	return make(Params), nil
+}
+
+// SendMessageDraftConfig streams a partial text message to a user while the
+// content is still being generated. Stream of partial messages is ended by
+// calling sendMessage.
+type SendMessageDraftConfig struct {
+	ChatID          int64
+	MessageThreadID int
+	Text            string
+	ParseMode       string
+	Entities        []MessageEntity
+	ReplyParameters *ReplyParameters
+}
+
+func (SendMessageDraftConfig) method() string {
+	return "sendMessageDraft"
+}
+
+func (config SendMessageDraftConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("chat_id", config.ChatID)
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
+	params.AddNonEmpty("text", config.Text)
+	params.AddNonEmpty("parse_mode", config.ParseMode)
+	if err := params.AddAny("entities", config.Entities); err != nil {
+		return params, err
+	}
+	err := params.AddAny("reply_parameters", config.ReplyParameters)
+
+	return params, err
+}
+
+// GetUserGiftsConfig returns the list of gifts received and owned by a user.
+type GetUserGiftsConfig struct {
+	UserID int64
+	Offset string
+	Limit  int
+}
+
+func (GetUserGiftsConfig) method() string {
+	return "getUserGifts"
+}
+
+func (config GetUserGiftsConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params.AddNonEmpty("offset", config.Offset)
+	params.AddNonZero("limit", config.Limit)
+
+	return params, nil
+}
+
+// GetChatGiftsConfig returns the list of gifts received and owned by a chat.
+//
+// Provide the target chat via either ChatID (numeric identifier) or
+// ChannelUsername ("@channelusername"); the first non-zero / non-empty
+// value is used.
+type GetChatGiftsConfig struct {
+	ChatID          int64
+	ChannelUsername string
+	Offset          string
+	Limit           int
+}
+
+func (GetChatGiftsConfig) method() string {
+	return "getChatGifts"
+}
+
+func (config GetChatGiftsConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
+	params.AddNonEmpty("offset", config.Offset)
+	params.AddNonZero("limit", config.Limit)
+
+	return params, nil
+}
+
+// RepostStoryConfig reposts a story across different business accounts
+// managed by the bot.
+type RepostStoryConfig struct {
+	BusinessConnectionID string
+	FromChatID           int64
+	StoryID              int
+	Caption              string
+	ParseMode            string
+	CaptionEntities      []MessageEntity
+	Areas                []StoryArea
+	PostToChatPage       bool
+	ProtectContent       bool
+}
+
+func (RepostStoryConfig) method() string {
+	return "repostStory"
+}
+
+func (config RepostStoryConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonZero64("from_chat_id", config.FromChatID)
+	params.AddNonZero("story_id", config.StoryID)
+	params.AddNonEmpty("caption", config.Caption)
+	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("post_to_chat_page", config.PostToChatPage)
+	params.AddBool("protect_content", config.ProtectContent)
+	if err := params.AddAny("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err := params.AddAny("areas", config.Areas)
+
+	return params, err
 }
 
 // DeleteStoryConfig deletes a story previously posted by the bot on behalf

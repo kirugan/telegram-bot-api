@@ -804,6 +804,46 @@ func (bot *BotAPI) GetBusinessAccountStarBalance(config GetBusinessAccountStarBa
 	return amount, err
 }
 
+// GetUserGifts returns the list of gifts received and owned by a user.
+func (bot *BotAPI) GetUserGifts(config GetUserGiftsConfig) (OwnedGifts, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return OwnedGifts{}, err
+	}
+
+	var gifts OwnedGifts
+	err = json.Unmarshal(resp.Result, &gifts)
+
+	return gifts, err
+}
+
+// GetChatGifts returns the list of gifts received and owned by a chat.
+func (bot *BotAPI) GetChatGifts(config GetChatGiftsConfig) (OwnedGifts, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return OwnedGifts{}, err
+	}
+
+	var gifts OwnedGifts
+	err = json.Unmarshal(resp.Result, &gifts)
+
+	return gifts, err
+}
+
+// RepostStory reposts a story across different business accounts managed
+// by the bot and returns the newly posted Story.
+func (bot *BotAPI) RepostStory(config RepostStoryConfig) (Story, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return Story{}, err
+	}
+
+	var story Story
+	err = json.Unmarshal(resp.Result, &story)
+
+	return story, err
+}
+
 // GetBusinessAccountGifts returns the gifts received and owned by a managed
 // business account.
 func (bot *BotAPI) GetBusinessAccountGifts(config GetBusinessAccountGiftsConfig) (OwnedGifts, error) {
