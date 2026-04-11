@@ -687,6 +687,34 @@ func (bot *BotAPI) GetForumTopicIconStickers() ([]Sticker, error) {
 	return stickers, err
 }
 
+// ForwardMessages forwards multiple messages of any kind and returns the
+// identifiers of the sent messages.
+func (bot *BotAPI) ForwardMessages(config ForwardMessagesConfig) ([]MessageID, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []MessageID
+	err = json.Unmarshal(resp.Result, &ids)
+
+	return ids, err
+}
+
+// CopyMessages copies messages of any kind and returns the identifiers of
+// the sent messages.
+func (bot *BotAPI) CopyMessages(config CopyMessagesConfig) ([]MessageID, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return nil, err
+	}
+
+	var ids []MessageID
+	err = json.Unmarshal(resp.Result, &ids)
+
+	return ids, err
+}
+
 // GetMyName returns the current bot name for the given user language.
 func (bot *BotAPI) GetMyName(config GetMyNameConfig) (BotName, error) {
 	resp, err := bot.Request(config)

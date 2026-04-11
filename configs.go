@@ -1962,6 +1962,103 @@ func (config DeleteMessageConfig) params() (Params, error) {
 	return params, nil
 }
 
+// DeleteMessagesConfig deletes multiple messages simultaneously. If some of
+// the specified messages can't be found, they are skipped.
+type DeleteMessagesConfig struct {
+	ChatID          int64
+	ChannelUsername string
+	MessageIDs      []int // 1-100 message identifiers
+}
+
+func (config DeleteMessagesConfig) method() string {
+	return "deleteMessages"
+}
+
+func (config DeleteMessagesConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
+	err := params.AddAny("message_ids", config.MessageIDs)
+
+	return params, err
+}
+
+// ForwardMessagesConfig forwards multiple messages of any kind. If some of the
+// specified messages can't be found or forwarded, they are skipped. Service
+// messages and messages with protected content can't be forwarded. Album
+// grouping is kept for forwarded messages.
+type ForwardMessagesConfig struct {
+	ChatID              int64
+	ChannelUsername     string
+	MessageThreadID     int
+	FromChatID          int64
+	FromChannelUsername string
+	MessageIDs          []int // 1-100 message identifiers, must be in strictly increasing order
+	DisableNotification bool
+	ProtectContent      bool
+}
+
+func (config ForwardMessagesConfig) method() string {
+	return "forwardMessages"
+}
+
+func (config ForwardMessagesConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
+	if err := params.AddFirstValid("from_chat_id", config.FromChatID, config.FromChannelUsername); err != nil {
+		return params, err
+	}
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
+	params.AddBool("disable_notification", config.DisableNotification)
+	params.AddBool("protect_content", config.ProtectContent)
+	err := params.AddAny("message_ids", config.MessageIDs)
+
+	return params, err
+}
+
+// CopyMessagesConfig copies messages of any kind. If some of the specified
+// messages can't be found or copied, they are skipped. Service messages,
+// giveaway messages, giveaway winners messages, and invoice messages can't
+// be copied. Album grouping is kept for copied messages.
+type CopyMessagesConfig struct {
+	ChatID              int64
+	ChannelUsername     string
+	MessageThreadID     int
+	FromChatID          int64
+	FromChannelUsername string
+	MessageIDs          []int // 1-100 message identifiers, must be in strictly increasing order
+	DisableNotification bool
+	ProtectContent      bool
+	RemoveCaption       bool
+}
+
+func (config CopyMessagesConfig) method() string {
+	return "copyMessages"
+}
+
+func (config CopyMessagesConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+		return params, err
+	}
+	if err := params.AddFirstValid("from_chat_id", config.FromChatID, config.FromChannelUsername); err != nil {
+		return params, err
+	}
+	params.AddNonZero("message_thread_id", config.MessageThreadID)
+	params.AddBool("disable_notification", config.DisableNotification)
+	params.AddBool("protect_content", config.ProtectContent)
+	params.AddBool("remove_caption", config.RemoveCaption)
+	err := params.AddAny("message_ids", config.MessageIDs)
+
+	return params, err
+}
+
 // SetMessageReactionConfig sets the bot's reaction to a message. Pass an
 // empty Reaction to remove all reactions from the message.
 type SetMessageReactionConfig struct {
