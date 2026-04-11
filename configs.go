@@ -819,6 +819,7 @@ type EditMessageLiveLocationConfig struct {
 	BaseEdit
 	Latitude             float64 // required
 	Longitude            float64 // required
+	LivePeriod           int     // optional; pass 0x7FFFFFFF to keep live indefinitely
 	HorizontalAccuracy   float64 // optional
 	Heading              int     // optional
 	ProximityAlertRadius int     // optional
@@ -829,6 +830,7 @@ func (config EditMessageLiveLocationConfig) params() (Params, error) {
 
 	params.AddNonZeroFloat("latitude", config.Latitude)
 	params.AddNonZeroFloat("longitude", config.Longitude)
+	params.AddNonZero("live_period", config.LivePeriod)
 	params.AddNonZeroFloat("horizontal_accuracy", config.HorizontalAccuracy)
 	params.AddNonZero("heading", config.Heading)
 	params.AddNonZero("proximity_alert_radius", config.ProximityAlertRadius)
@@ -914,7 +916,9 @@ func (config ContactConfig) method() string {
 type SendPollConfig struct {
 	BaseChat
 	Question              string
-	Options               []string
+	QuestionParseMode     string
+	QuestionEntities      []MessageEntity
+	Options               []InputPollOption
 	IsAnonymous           bool
 	Type                  string
 	AllowsMultipleAnswers bool
@@ -934,7 +938,11 @@ func (config SendPollConfig) params() (Params, error) {
 	}
 
 	params["question"] = config.Question
-	if err = params.AddInterface("options", config.Options); err != nil {
+	params.AddNonEmpty("question_parse_mode", config.QuestionParseMode)
+	if err = params.AddAny("question_entities", config.QuestionEntities); err != nil {
+		return params, err
+	}
+	if err = params.AddAny("options", config.Options); err != nil {
 		return params, err
 	}
 	params["is_anonymous"] = strconv.FormatBool(config.IsAnonymous)
@@ -946,7 +954,7 @@ func (config SendPollConfig) params() (Params, error) {
 	params.AddNonEmpty("explanation_parse_mode", config.ExplanationParseMode)
 	params.AddNonZero("open_period", config.OpenPeriod)
 	params.AddNonZero("close_date", config.CloseDate)
-	err = params.AddInterface("explanation_entities", config.ExplanationEntities)
+	err = params.AddAny("explanation_entities", config.ExplanationEntities)
 
 	return params, err
 }

@@ -556,17 +556,20 @@ func WriteToHTTPResponse(w http.ResponseWriter, c Chattable) error {
 	return err
 }
 
-// GetChat gets information about a chat.
-func (bot *BotAPI) GetChat(config ChatInfoConfig) (Chat, error) {
+// GetChat gets full information about a chat.
+//
+// As of Bot API 7.3 the return type is ChatFullInfo, which embeds Chat and
+// adds the fields that are only populated by getChat.
+func (bot *BotAPI) GetChat(config ChatInfoConfig) (ChatFullInfo, error) {
 	resp, err := bot.Request(config)
 	if err != nil {
-		return Chat{}, err
+		return ChatFullInfo{}, err
 	}
 
-	var chat Chat
-	err = json.Unmarshal(resp.Result, &chat)
+	var info ChatFullInfo
+	err = json.Unmarshal(resp.Result, &info)
 
-	return chat, err
+	return info, err
 }
 
 // GetChatAdministrators gets a list of administrators in the chat.

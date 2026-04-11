@@ -811,13 +811,20 @@ func NewDeleteChatPhoto(chatID int64) DeleteChatPhotoConfig {
 }
 
 // NewPoll allows you to create a new poll.
+//
+// Option texts are wrapped into InputPollOption values. To set custom_emoji
+// entities on options, build the SendPollConfig directly.
 func NewPoll(chatID int64, question string, options ...string) SendPollConfig {
+	opts := make([]InputPollOption, 0, len(options))
+	for _, text := range options {
+		opts = append(opts, InputPollOption{Text: text})
+	}
 	return SendPollConfig{
 		BaseChat: BaseChat{
 			ChatID: chatID,
 		},
 		Question:    question,
-		Options:     options,
+		Options:     opts,
 		IsAnonymous: true, // This is Telegram's default.
 	}
 }
