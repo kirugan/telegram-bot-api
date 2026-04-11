@@ -341,15 +341,18 @@ func (file BaseFile) params() (Params, error) {
 
 // BaseEdit is base type of all chat edits.
 type BaseEdit struct {
-	ChatID          int64
-	ChannelUsername string
-	MessageID       int
-	InlineMessageID string
-	ReplyMarkup     *InlineKeyboardMarkup
+	BusinessConnectionID string
+	ChatID               int64
+	ChannelUsername      string
+	MessageID            int
+	InlineMessageID      string
+	ReplyMarkup          *InlineKeyboardMarkup
 }
 
 func (edit BaseEdit) params() (Params, error) {
 	params := make(Params)
+
+	params.AddNonEmpty("business_connection_id", edit.BusinessConnectionID)
 
 	if edit.InlineMessageID != "" {
 		params["inline_message_id"] = edit.InlineMessageID
@@ -360,7 +363,7 @@ func (edit BaseEdit) params() (Params, error) {
 		params.AddNonZero("message_id", edit.MessageID)
 	}
 
-	err := params.AddInterface("reply_markup", edit.ReplyMarkup)
+	err := params.AddAny("reply_markup", edit.ReplyMarkup)
 
 	return params, err
 }
@@ -1981,6 +1984,29 @@ func (config InvoiceLinkConfig) params() (Params, error) {
 
 func (config InvoiceLinkConfig) method() string {
 	return "createInvoiceLink"
+}
+
+// GetStarTransactionsConfig returns the bot's Telegram Star transactions in
+// chronological order.
+type GetStarTransactionsConfig struct {
+	// Offset is the number of transactions to skip in the response.
+	Offset int
+	// Limit is the maximum number of transactions to be retrieved; 1-100.
+	// Defaults to 100.
+	Limit int
+}
+
+func (config GetStarTransactionsConfig) method() string {
+	return "getStarTransactions"
+}
+
+func (config GetStarTransactionsConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero("offset", config.Offset)
+	params.AddNonZero("limit", config.Limit)
+
+	return params, nil
 }
 
 // RefundStarPaymentConfig refunds a successful payment in Telegram Stars.

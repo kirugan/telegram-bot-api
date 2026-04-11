@@ -2695,6 +2695,87 @@ type Birthdate struct {
 	Year int `json:"year,omitempty"`
 }
 
+// Revenue withdrawal state type constants.
+const (
+	RevenueWithdrawalStateTypePending   = "pending"
+	RevenueWithdrawalStateTypeSucceeded = "succeeded"
+	RevenueWithdrawalStateTypeFailed    = "failed"
+)
+
+// RevenueWithdrawalState describes the state of a revenue withdrawal. Flat
+// polymorphic by Type:
+//   - "pending"   → (no extra fields)
+//   - "succeeded" → Date, URL
+//   - "failed"    → (no extra fields)
+type RevenueWithdrawalState struct {
+	// Type of the state. One of "pending", "succeeded", "failed".
+	Type string `json:"type"`
+	// Date of the withdrawal in Unix time. Set when Type is "succeeded".
+	//
+	// optional
+	Date int `json:"date,omitempty"`
+	// URL is an HTTPS URL where the withdrawal transaction can be seen.
+	// Set when Type is "succeeded".
+	//
+	// optional
+	URL string `json:"url,omitempty"`
+}
+
+// Transaction partner type constants.
+const (
+	TransactionPartnerTypeUser     = "user"
+	TransactionPartnerTypeFragment = "fragment"
+	TransactionPartnerTypeOther    = "other"
+)
+
+// TransactionPartner describes the source or recipient of a StarTransaction.
+// Flat polymorphic by Type:
+//   - "user"     → User is set
+//   - "fragment" → WithdrawalState is set
+//   - "other"    → (no extra fields)
+type TransactionPartner struct {
+	// Type of the transaction partner. One of "user", "fragment", "other".
+	Type string `json:"type"`
+	// User that the transaction involves. Set when Type is "user".
+	//
+	// optional
+	User *User `json:"user,omitempty"`
+	// WithdrawalState is the state of the transaction if the transaction is
+	// outgoing. Set when Type is "fragment".
+	//
+	// optional
+	WithdrawalState *RevenueWithdrawalState `json:"withdrawal_state,omitempty"`
+}
+
+// StarTransaction describes a Telegram Star transaction.
+type StarTransaction struct {
+	// ID is the unique identifier of the transaction. Coincides with the
+	// identifier of the original transaction for refund transactions. Can
+	// be used to match transactions to refunds.
+	ID string `json:"id"`
+	// Amount of Telegram Stars transferred by the transaction.
+	Amount int `json:"amount"`
+	// Date the transaction was created in Unix time.
+	Date int `json:"date"`
+	// Source of an incoming transaction (e.g. a user purchasing goods or
+	// services, Fragment refunding a failed withdrawal). Only for incoming
+	// transactions.
+	//
+	// optional
+	Source *TransactionPartner `json:"source,omitempty"`
+	// Receiver of an outgoing transaction (e.g. a user for a purchase
+	// refund, Fragment for a withdrawal). Only for outgoing transactions.
+	//
+	// optional
+	Receiver *TransactionPartner `json:"receiver,omitempty"`
+}
+
+// StarTransactions contains a list of Telegram Star transactions.
+type StarTransactions struct {
+	// Transactions is the list of transactions.
+	Transactions []StarTransaction `json:"transactions"`
+}
+
 // SharedUser contains information about a user that was shared with the bot
 // using a KeyboardButtonRequestUsers button.
 type SharedUser struct {

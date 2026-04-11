@@ -735,6 +735,20 @@ func (bot *BotAPI) CopyMessages(config CopyMessagesConfig) ([]MessageID, error) 
 	return ids, err
 }
 
+// GetStarTransactions returns the bot's Telegram Star transactions in
+// chronological order.
+func (bot *BotAPI) GetStarTransactions(config GetStarTransactionsConfig) (StarTransactions, error) {
+	resp, err := bot.Request(config)
+	if err != nil {
+		return StarTransactions{}, err
+	}
+
+	var st StarTransactions
+	err = json.Unmarshal(resp.Result, &st)
+
+	return st, err
+}
+
 // GetBusinessConnection returns information about the connection of the bot
 // with a business account.
 func (bot *BotAPI) GetBusinessConnection(config GetBusinessConnectionConfig) (BusinessConnection, error) {
