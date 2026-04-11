@@ -344,6 +344,11 @@ type Chat struct {
 	//
 	// optional
 	IsForum bool `json:"is_forum,omitempty"`
+	// IsDirectMessages is true, if the chat is a supergroup that serves as
+	// a direct messages chat for a channel.
+	//
+	// optional
+	IsDirectMessages bool `json:"is_direct_messages,omitempty"`
 	// ActiveUsernames is a list of all active chat usernames; for private chats,
 	// supergroups and channels. Returned only in getChat.
 	//
@@ -567,6 +572,10 @@ type ChatFullInfo struct {
 	CanSendPaidMedia bool `json:"can_send_paid_media,omitempty"`
 	// AcceptedGiftTypes are the types of gifts accepted by the chat.
 	AcceptedGiftTypes AcceptedGiftTypes `json:"accepted_gift_types"`
+	// ParentChat is the parent channel chat for a channel direct messages chat.
+	//
+	// optional
+	ParentChat *Chat `json:"parent_chat,omitempty"`
 }
 
 // Message represents a message.
@@ -981,6 +990,46 @@ type Message struct {
 	//
 	// optional
 	ChecklistTasksAdded *ChecklistTasksAdded `json:"checklist_tasks_added,omitempty"`
+	// DirectMessagesTopic is the topic of a direct messages chat to which
+	// the message belongs.
+	//
+	// optional
+	DirectMessagesTopic *DirectMessagesTopic `json:"direct_messages_topic,omitempty"`
+	// IsPaidPost is true, if the message is a paid post. Note that such
+	// posts must not be deleted for 24 hours after the payment.
+	//
+	// optional
+	IsPaidPost bool `json:"is_paid_post,omitempty"`
+	// SuggestedPostInfo describes the suggested post if this message is a
+	// suggested post.
+	//
+	// optional
+	SuggestedPostInfo *SuggestedPostInfo `json:"suggested_post_info,omitempty"`
+	// SuggestedPostApproved is a service message about the approval of a
+	// suggested post.
+	//
+	// optional
+	SuggestedPostApproved *SuggestedPostApproved `json:"suggested_post_approved,omitempty"`
+	// SuggestedPostApprovalFailed is a service message about a failure to
+	// approve a suggested post.
+	//
+	// optional
+	SuggestedPostApprovalFailed *SuggestedPostApprovalFailed `json:"suggested_post_approval_failed,omitempty"`
+	// SuggestedPostDeclined is a service message about the rejection of a
+	// suggested post.
+	//
+	// optional
+	SuggestedPostDeclined *SuggestedPostDeclined `json:"suggested_post_declined,omitempty"`
+	// SuggestedPostPaid is a service message about a successful payment
+	// for a suggested post.
+	//
+	// optional
+	SuggestedPostPaid *SuggestedPostPaid `json:"suggested_post_paid,omitempty"`
+	// SuggestedPostRefunded is a service message about a payment refund
+	// for a suggested post.
+	//
+	// optional
+	SuggestedPostRefunded *SuggestedPostRefunded `json:"suggested_post_refunded,omitempty"`
 	// PaidStarCount is the number of Telegram Stars that were paid by the
 	// sender of the message to send it.
 	//
@@ -2267,21 +2316,22 @@ type ChatInviteLink struct {
 }
 
 type ChatAdministratorRights struct {
-	IsAnonymous         bool `json:"is_anonymous"`
-	CanManageChat       bool `json:"can_manage_chat"`
-	CanDeleteMessages   bool `json:"can_delete_messages"`
-	CanManageVideoChats bool `json:"can_manage_video_chats"`
-	CanRestrictMembers  bool `json:"can_restrict_members"`
-	CanPromoteMembers   bool `json:"can_promote_members"`
-	CanChangeInfo       bool `json:"can_change_info"`
-	CanInviteUsers      bool `json:"can_invite_users"`
-	CanPostMessages     bool `json:"can_post_messages"`
-	CanEditMessages     bool `json:"can_edit_messages"`
-	CanPinMessages      bool `json:"can_pin_messages"`
-	CanPostStories      bool `json:"can_post_stories"`
-	CanEditStories      bool `json:"can_edit_stories"`
-	CanDeleteStories    bool `json:"can_delete_stories"`
-	CanManageTopics     bool `json:"can_manage_topics"`
+	IsAnonymous             bool `json:"is_anonymous"`
+	CanManageChat           bool `json:"can_manage_chat"`
+	CanDeleteMessages       bool `json:"can_delete_messages"`
+	CanManageVideoChats     bool `json:"can_manage_video_chats"`
+	CanRestrictMembers      bool `json:"can_restrict_members"`
+	CanPromoteMembers       bool `json:"can_promote_members"`
+	CanChangeInfo           bool `json:"can_change_info"`
+	CanInviteUsers          bool `json:"can_invite_users"`
+	CanPostMessages         bool `json:"can_post_messages"`
+	CanEditMessages         bool `json:"can_edit_messages"`
+	CanPinMessages          bool `json:"can_pin_messages"`
+	CanPostStories          bool `json:"can_post_stories"`
+	CanEditStories          bool `json:"can_edit_stories"`
+	CanDeleteStories        bool `json:"can_delete_stories"`
+	CanManageTopics         bool `json:"can_manage_topics"`
+	CanManageDirectMessages bool `json:"can_manage_direct_messages"`
 }
 
 // ChatMember contains information about one member of a chat.
@@ -2395,6 +2445,12 @@ type ChatMember struct {
 	//
 	// optional
 	CanManageTopics bool `json:"can_manage_topics,omitempty"`
+	// CanManageDirectMessages administrators only.
+	// True, if the administrator can manage direct messages within the
+	// channel and decline suggested posts; for channels only.
+	//
+	// optional
+	CanManageDirectMessages bool `json:"can_manage_direct_messages,omitempty"`
 	// IsMember is true, if the user is a member of the chat at the moment of
 	// the request
 	IsMember bool `json:"is_member"`
@@ -3633,6 +3689,138 @@ type DirectMessagePriceChanged struct {
 	//
 	// optional
 	DirectMessageStarCount int `json:"direct_message_star_count,omitempty"`
+}
+
+// DirectMessagesTopic describes a topic of a direct messages chat.
+type DirectMessagesTopic struct {
+	// TopicID is the unique identifier of the topic.
+	TopicID int `json:"topic_id"`
+	// User is the information about the user that created the topic.
+	// Currently, the user is always present for topics in direct messages
+	// chats of channel direct messages chats.
+	//
+	// optional
+	User *User `json:"user,omitempty"`
+}
+
+// SuggestedPostPrice describes the price of a suggested post.
+type SuggestedPostPrice struct {
+	// Currency is the currency in which the price is expressed. Currently,
+	// always "XTR" (Telegram Stars) or "TON" (Toncoin).
+	Currency string `json:"currency"`
+	// Amount is the amount of the currency to be paid for the post.
+	Amount int `json:"amount"`
+}
+
+// SuggestedPostParameters contains parameters of a post that is suggested
+// by the bot.
+type SuggestedPostParameters struct {
+	// Price of the suggested post. If the field is omitted, then the post
+	// is unpaid.
+	//
+	// optional
+	Price *SuggestedPostPrice `json:"price,omitempty"`
+	// SendDate is the Unix timestamp when the post is suggested to be
+	// published. If specified, then the date must be between 300 and
+	// 2678400 seconds (30 days) in the future. If omitted, then the post
+	// can be published at any time within 30 days at the sole discretion
+	// of the administrator.
+	//
+	// optional
+	SendDate int `json:"send_date,omitempty"`
+}
+
+// SuggestedPostInfo contains information about a suggested post.
+type SuggestedPostInfo struct {
+	// State of the suggested post. Currently, one of "pending", "approved",
+	// "declined".
+	State string `json:"state"`
+	// Price of the suggested post.
+	//
+	// optional
+	Price *SuggestedPostPrice `json:"price,omitempty"`
+	// SendDate is the Unix timestamp when the post is suggested to be
+	// published.
+	//
+	// optional
+	SendDate int `json:"send_date,omitempty"`
+}
+
+// SuggestedPostApproved describes a service message about the approval of
+// a suggested post.
+type SuggestedPostApproved struct {
+	// SuggestedPostMessage is the message containing the suggested post
+	// that was approved.
+	//
+	// optional
+	SuggestedPostMessage *Message `json:"suggested_post_message,omitempty"`
+	// Price at which the post was approved.
+	//
+	// optional
+	Price *SuggestedPostPrice `json:"price,omitempty"`
+	// SendDate is the Unix timestamp when the post will be published.
+	SendDate int `json:"send_date"`
+}
+
+// SuggestedPostApprovalFailed describes a service message about the failure
+// to approve a suggested post due to insufficient funds at the time of
+// payment.
+type SuggestedPostApprovalFailed struct {
+	// SuggestedPostMessage is the message containing the suggested post
+	// whose approval has failed.
+	//
+	// optional
+	SuggestedPostMessage *Message `json:"suggested_post_message,omitempty"`
+	// Price at which the post would have been approved.
+	Price SuggestedPostPrice `json:"price"`
+}
+
+// SuggestedPostDeclined describes a service message about the rejection of
+// a suggested post.
+type SuggestedPostDeclined struct {
+	// SuggestedPostMessage is the message containing the suggested post
+	// that was declined.
+	//
+	// optional
+	SuggestedPostMessage *Message `json:"suggested_post_message,omitempty"`
+	// Comment with which the post was declined.
+	//
+	// optional
+	Comment string `json:"comment,omitempty"`
+}
+
+// SuggestedPostPaid describes a service message about a successful payment
+// for a suggested post.
+type SuggestedPostPaid struct {
+	// SuggestedPostMessage is the message containing the suggested post.
+	//
+	// optional
+	SuggestedPostMessage *Message `json:"suggested_post_message,omitempty"`
+	// Currency in which the payment was made. Currently, one of "XTR" or "TON".
+	Currency string `json:"currency"`
+	// Amount in the smallest units of the currency that was received by
+	// the channel in nanotoncoins; for payments in toncoins only.
+	//
+	// optional
+	Amount int `json:"amount,omitempty"`
+	// StarAmount is the amount of Telegram Stars that was received by the
+	// channel; for payments in Telegram Stars only.
+	//
+	// optional
+	StarAmount *StarAmount `json:"star_amount,omitempty"`
+}
+
+// SuggestedPostRefunded describes a service message about a payment refund
+// for a suggested post.
+type SuggestedPostRefunded struct {
+	// SuggestedPostMessage is the message containing the suggested post
+	// that was refunded.
+	//
+	// optional
+	SuggestedPostMessage *Message `json:"suggested_post_message,omitempty"`
+	// Reason for the refund. Currently, one of "post_deleted",
+	// "payment_refunded".
+	Reason string `json:"reason"`
 }
 
 // ChecklistTask describes a task in a checklist.

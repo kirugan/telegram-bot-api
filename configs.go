@@ -302,16 +302,17 @@ func (CloseConfig) params() (Params, error) {
 
 // BaseChat is base type for all chat config types.
 type BaseChat struct {
-	ChatID               int64 // required
-	ChannelUsername      string
-	BusinessConnectionID string
-	MessageThreadID      int
-	MessageEffectID      string
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          interface{}
-	DisableNotification  bool
+	ChatID                int64 // required
+	ChannelUsername       string
+	BusinessConnectionID  string
+	MessageThreadID       int
+	DirectMessagesTopicID int
+	MessageEffectID       string
+	ProtectContent        bool
+	AllowPaidBroadcast    bool
+	ReplyParameters       *ReplyParameters
+	ReplyMarkup           interface{}
+	DisableNotification   bool
 }
 
 func (chat *BaseChat) params() (Params, error) {
@@ -322,6 +323,7 @@ func (chat *BaseChat) params() (Params, error) {
 	}
 	params.AddNonEmpty("business_connection_id", chat.BusinessConnectionID)
 	params.AddNonZero("message_thread_id", chat.MessageThreadID)
+	params.AddNonZero("direct_messages_topic_id", chat.DirectMessagesTopicID)
 	params.AddNonEmpty("message_effect_id", chat.MessageEffectID)
 	params.AddBool("disable_notification", chat.DisableNotification)
 	params.AddBool("protect_content", chat.ProtectContent)
@@ -1492,21 +1494,22 @@ func (config RestrictChatMemberConfig) params() (Params, error) {
 // PromoteChatMemberConfig contains fields to promote members of chat
 type PromoteChatMemberConfig struct {
 	ChatMemberConfig
-	IsAnonymous         bool
-	CanManageChat       bool
-	CanChangeInfo       bool
-	CanPostMessages     bool
-	CanEditMessages     bool
-	CanDeleteMessages   bool
-	CanManageVideoChats bool
-	CanInviteUsers      bool
-	CanRestrictMembers  bool
-	CanPinMessages      bool
-	CanPromoteMembers   bool
-	CanPostStories      bool
-	CanEditStories      bool
-	CanDeleteStories    bool
-	CanManageTopics     bool
+	IsAnonymous             bool
+	CanManageChat           bool
+	CanChangeInfo           bool
+	CanPostMessages         bool
+	CanEditMessages         bool
+	CanDeleteMessages       bool
+	CanManageVideoChats     bool
+	CanInviteUsers          bool
+	CanRestrictMembers      bool
+	CanPinMessages          bool
+	CanPromoteMembers       bool
+	CanPostStories          bool
+	CanEditStories          bool
+	CanDeleteStories        bool
+	CanManageTopics         bool
+	CanManageDirectMessages bool
 }
 
 func (config PromoteChatMemberConfig) method() string {
@@ -1536,6 +1539,7 @@ func (config PromoteChatMemberConfig) params() (Params, error) {
 	params.AddBool("can_edit_stories", config.CanEditStories)
 	params.AddBool("can_delete_stories", config.CanDeleteStories)
 	params.AddBool("can_manage_topics", config.CanManageTopics)
+	params.AddBool("can_manage_direct_messages", config.CanManageDirectMessages)
 
 	return params, nil
 }
@@ -2412,14 +2416,15 @@ func (config DeleteMessagesConfig) params() (Params, error) {
 // messages and messages with protected content can't be forwarded. Album
 // grouping is kept for forwarded messages.
 type ForwardMessagesConfig struct {
-	ChatID              int64
-	ChannelUsername     string
-	MessageThreadID     int
-	FromChatID          int64
-	FromChannelUsername string
-	MessageIDs          []int // 1-100 message identifiers, must be in strictly increasing order
-	DisableNotification bool
-	ProtectContent      bool
+	ChatID                int64
+	ChannelUsername       string
+	MessageThreadID       int
+	DirectMessagesTopicID int
+	FromChatID            int64
+	FromChannelUsername   string
+	MessageIDs            []int // 1-100 message identifiers, must be in strictly increasing order
+	DisableNotification   bool
+	ProtectContent        bool
 }
 
 func (config ForwardMessagesConfig) method() string {
@@ -2436,6 +2441,7 @@ func (config ForwardMessagesConfig) params() (Params, error) {
 		return params, err
 	}
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
+	params.AddNonZero("direct_messages_topic_id", config.DirectMessagesTopicID)
 	params.AddBool("disable_notification", config.DisableNotification)
 	params.AddBool("protect_content", config.ProtectContent)
 	err := params.AddAny("message_ids", config.MessageIDs)
@@ -2448,15 +2454,16 @@ func (config ForwardMessagesConfig) params() (Params, error) {
 // giveaway messages, giveaway winners messages, and invoice messages can't
 // be copied. Album grouping is kept for copied messages.
 type CopyMessagesConfig struct {
-	ChatID              int64
-	ChannelUsername     string
-	MessageThreadID     int
-	FromChatID          int64
-	FromChannelUsername string
-	MessageIDs          []int // 1-100 message identifiers, must be in strictly increasing order
-	DisableNotification bool
-	ProtectContent      bool
-	RemoveCaption       bool
+	ChatID                int64
+	ChannelUsername       string
+	MessageThreadID       int
+	DirectMessagesTopicID int
+	FromChatID            int64
+	FromChannelUsername   string
+	MessageIDs            []int // 1-100 message identifiers, must be in strictly increasing order
+	DisableNotification   bool
+	ProtectContent        bool
+	RemoveCaption         bool
 }
 
 func (config CopyMessagesConfig) method() string {
@@ -2473,12 +2480,57 @@ func (config CopyMessagesConfig) params() (Params, error) {
 		return params, err
 	}
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
+	params.AddNonZero("direct_messages_topic_id", config.DirectMessagesTopicID)
 	params.AddBool("disable_notification", config.DisableNotification)
 	params.AddBool("protect_content", config.ProtectContent)
 	params.AddBool("remove_caption", config.RemoveCaption)
 	err := params.AddAny("message_ids", config.MessageIDs)
 
 	return params, err
+}
+
+// ApproveSuggestedPostConfig approves a suggested post in a direct messages
+// chat.
+type ApproveSuggestedPostConfig struct {
+	ChatID    int64
+	MessageID int
+	SendDate  int
+}
+
+func (ApproveSuggestedPostConfig) method() string {
+	return "approveSuggestedPost"
+}
+
+func (config ApproveSuggestedPostConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("chat_id", config.ChatID)
+	params.AddNonZero("message_id", config.MessageID)
+	params.AddNonZero("send_date", config.SendDate)
+
+	return params, nil
+}
+
+// DeclineSuggestedPostConfig declines a suggested post in a direct messages
+// chat.
+type DeclineSuggestedPostConfig struct {
+	ChatID    int64
+	MessageID int
+	Comment   string
+}
+
+func (DeclineSuggestedPostConfig) method() string {
+	return "declineSuggestedPost"
+}
+
+func (config DeclineSuggestedPostConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("chat_id", config.ChatID)
+	params.AddNonZero("message_id", config.MessageID)
+	params.AddNonEmpty("comment", config.Comment)
+
+	return params, nil
 }
 
 // SetMessageReactionConfig sets the bot's reaction to a message. Pass an
@@ -3500,11 +3552,12 @@ func prepareInputPaidMediaForFiles(items []InputPaidMedia) []RequestFile {
 //
 // Media consist of InputMedia items (InputMediaPhoto, InputMediaVideo).
 type MediaGroupConfig struct {
-	ChatID               int64
-	ChannelUsername      string
-	BusinessConnectionID string
-	MessageThreadID      int
-	MessageEffectID      string
+	ChatID                int64
+	ChannelUsername       string
+	BusinessConnectionID  string
+	MessageThreadID       int
+	DirectMessagesTopicID int
+	MessageEffectID       string
 
 	Media               []interface{}
 	DisableNotification bool
@@ -3525,6 +3578,7 @@ func (config MediaGroupConfig) params() (Params, error) {
 	}
 	params.AddNonEmpty("business_connection_id", config.BusinessConnectionID)
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
+	params.AddNonZero("direct_messages_topic_id", config.DirectMessagesTopicID)
 	params.AddNonEmpty("message_effect_id", config.MessageEffectID)
 	params.AddBool("disable_notification", config.DisableNotification)
 	params.AddBool("protect_content", config.ProtectContent)
