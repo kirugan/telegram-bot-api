@@ -308,6 +308,7 @@ type BaseChat struct {
 	MessageThreadID      int
 	MessageEffectID      string
 	ProtectContent       bool
+	AllowPaidBroadcast   bool
 	ReplyParameters      *ReplyParameters
 	ReplyMarkup          interface{}
 	DisableNotification  bool
@@ -324,6 +325,7 @@ func (chat *BaseChat) params() (Params, error) {
 	params.AddNonEmpty("message_effect_id", chat.MessageEffectID)
 	params.AddBool("disable_notification", chat.DisableNotification)
 	params.AddBool("protect_content", chat.ProtectContent)
+	params.AddBool("allow_paid_broadcast", chat.AllowPaidBroadcast)
 
 	if err := params.AddAny("reply_parameters", chat.ReplyParameters); err != nil {
 		return params, err
@@ -3275,6 +3277,7 @@ type MediaGroupConfig struct {
 	Media               []interface{}
 	DisableNotification bool
 	ProtectContent      bool
+	AllowPaidBroadcast  bool
 	ReplyParameters     *ReplyParameters
 }
 
@@ -3293,6 +3296,7 @@ func (config MediaGroupConfig) params() (Params, error) {
 	params.AddNonEmpty("message_effect_id", config.MessageEffectID)
 	params.AddBool("disable_notification", config.DisableNotification)
 	params.AddBool("protect_content", config.ProtectContent)
+	params.AddBool("allow_paid_broadcast", config.AllowPaidBroadcast)
 	if err := params.AddAny("reply_parameters", config.ReplyParameters); err != nil {
 		return params, err
 	}

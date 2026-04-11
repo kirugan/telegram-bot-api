@@ -1969,6 +1969,11 @@ type InlineKeyboardButton struct {
 	//
 	// optional
 	SwitchInlineQueryChosenChat *SwitchInlineQueryChosenChat `json:"switch_inline_query_chosen_chat,omitempty"`
+	// CopyText if set, pressing the button will copy the specified text to
+	// the clipboard.
+	//
+	// optional
+	CopyText *CopyTextButton `json:"copy_text,omitempty"`
 	// CallbackGame description of the game that will be launched when the user presses the button.
 	//
 	// optional
@@ -1979,6 +1984,13 @@ type InlineKeyboardButton struct {
 	//
 	// optional
 	Pay bool `json:"pay,omitempty"`
+}
+
+// CopyTextButton represents an inline keyboard button that copies specified
+// text to the clipboard when pressed.
+type CopyTextButton struct {
+	// Text is the text to be copied to the clipboard; 1-256 characters.
+	Text string `json:"text"`
 }
 
 // SwitchInlineQueryChosenChat represents an inline button that switches the
@@ -2757,22 +2769,29 @@ type RevenueWithdrawalState struct {
 
 // Transaction partner type constants.
 const (
-	TransactionPartnerTypeUser         = "user"
-	TransactionPartnerTypeFragment     = "fragment"
-	TransactionPartnerTypeTelegramAds  = "telegram_ads"
-	TransactionPartnerTypeOther        = "other"
+	TransactionPartnerTypeUser        = "user"
+	TransactionPartnerTypeFragment    = "fragment"
+	TransactionPartnerTypeTelegramAds = "telegram_ads"
+	TransactionPartnerTypeTelegramApi = "telegram_api"
+	TransactionPartnerTypeOther       = "other"
 )
 
 // TransactionPartner describes the source or recipient of a StarTransaction.
 // Flat polymorphic by Type:
-//   - "user"         → User is set; InvoicePayload optionally set
+//   - "user"         → User is set; InvoicePayload / PaidMedia optionally set
 //   - "fragment"     → WithdrawalState is set
 //   - "telegram_ads" → (no extra fields)
+//   - "telegram_api" → RequestCount is set
 //   - "other"        → (no extra fields)
 type TransactionPartner struct {
 	// Type of the transaction partner. One of "user", "fragment",
-	// "telegram_ads", "other".
+	// "telegram_ads", "telegram_api", "other".
 	Type string `json:"type"`
+	// RequestCount is the number of successful requests that caused the
+	// transaction. Set when Type is "telegram_api".
+	//
+	// optional
+	RequestCount int `json:"request_count,omitempty"`
 	// User that the transaction involves. Set when Type is "user".
 	//
 	// optional
