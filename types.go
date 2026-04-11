@@ -327,6 +327,34 @@ type Chat struct {
 	//
 	// optional
 	EmojiStatusExpirationDate int64 `json:"emoji_status_expiration_date,omitempty"`
+	// AccentColorID is the identifier of the accent color for the chat name
+	// and backgrounds of the chat photo, reply header, and link preview.
+	// Returned only in getChat.
+	//
+	// optional
+	AccentColorID int `json:"accent_color_id,omitempty"`
+	// BackgroundCustomEmojiID is the custom emoji identifier of the emoji
+	// chosen by the chat for the reply header and link preview background.
+	// Returned only in getChat.
+	//
+	// optional
+	BackgroundCustomEmojiID string `json:"background_custom_emoji_id,omitempty"`
+	// ProfileAccentColorID is the identifier of the accent color for the
+	// chat's profile background. Returned only in getChat.
+	//
+	// optional
+	ProfileAccentColorID int `json:"profile_accent_color_id,omitempty"`
+	// ProfileBackgroundCustomEmojiID is the custom emoji identifier of the
+	// emoji chosen by the chat for its profile background. Returned only in
+	// getChat.
+	//
+	// optional
+	ProfileBackgroundCustomEmojiID string `json:"profile_background_custom_emoji_id,omitempty"`
+	// HasVisibleHistory is true, if new chat members will have access to old
+	// messages; available only to chat administrators. Returned only in getChat.
+	//
+	// optional
+	HasVisibleHistory bool `json:"has_visible_history,omitempty"`
 	// HasHiddenMembers is true, if non-administrators can only see bots and
 	// administrators in the chat. Returned only in getChat.
 	//
@@ -484,34 +512,11 @@ type Message struct {
 	Date int `json:"date"`
 	// Chat is the conversation the message belongs to
 	Chat *Chat `json:"chat"`
-	// ForwardFrom for forwarded messages, sender of the original message;
+	// ForwardOrigin is information about the original message for forwarded
+	// messages.
 	//
 	// optional
-	ForwardFrom *User `json:"forward_from,omitempty"`
-	// ForwardFromChat for messages forwarded from channels,
-	// information about the original channel;
-	//
-	// optional
-	ForwardFromChat *Chat `json:"forward_from_chat,omitempty"`
-	// ForwardFromMessageID for messages forwarded from channels,
-	// identifier of the original message in the channel;
-	//
-	// optional
-	ForwardFromMessageID int `json:"forward_from_message_id,omitempty"`
-	// ForwardSignature for messages forwarded from channels, signature of the
-	// post author if present
-	//
-	// optional
-	ForwardSignature string `json:"forward_signature,omitempty"`
-	// ForwardSenderName is the sender's name for messages forwarded from users
-	// who disallow adding a link to their account in forwarded messages
-	//
-	// optional
-	ForwardSenderName string `json:"forward_sender_name,omitempty"`
-	// ForwardDate for forwarded messages, date the original message was sent in Unix time;
-	//
-	// optional
-	ForwardDate int `json:"forward_date,omitempty"`
+	ForwardOrigin *MessageOrigin `json:"forward_origin,omitempty"`
 	// IsAutomaticForward is true if the message is a channel post that was
 	// automatically forwarded to the connected discussion group.
 	//
@@ -1883,9 +1888,10 @@ type CallbackQuery struct {
 	ID string `json:"id"`
 	// From sender
 	From *User `json:"from"`
-	// Message with the callback button that originated the query.
-	// Note that message content and message date will not be available if the
-	// message is too old.
+	// Message with the callback button that originated the query. The message
+	// can be inaccessible (deleted or otherwise unreachable) — in that case
+	// only Message.MessageID and Message.Chat are populated and Message.Date
+	// is 0. See InaccessibleMessage for the equivalent dedicated type.
 	//
 	// optional
 	Message *Message `json:"message,omitempty"`
@@ -2393,11 +2399,9 @@ type TextQuote struct {
 
 // ExternalReplyInfo contains information about a message that is being replied
 // to, which may come from another chat or forum topic.
-//
-// Note: this struct grows across Bot API 7.0 sections — fields like Origin
-// (MessageOrigin), LinkPreviewOptions, Giveaway, GiveawayWinners are added
-// alongside their respective sections.
 type ExternalReplyInfo struct {
+	// Origin is the origin of the message replied to by the given message.
+	Origin MessageOrigin `json:"origin"`
 	// Chat is the conversation the original message belongs to. Available
 	// only if the chat is a supergroup or a channel.
 	//
@@ -2664,6 +2668,71 @@ type GiveawayCompleted struct {
 	//
 	// optional
 	GiveawayMessage *Message `json:"giveaway_message,omitempty"`
+}
+
+// Message origin type constants.
+const (
+	MessageOriginTypeUser       = "user"
+	MessageOriginTypeHiddenUser = "hidden_user"
+	MessageOriginTypeChat       = "chat"
+	MessageOriginTypeChannel    = "channel"
+)
+
+// MessageOrigin describes the origin of a message. The Type field discriminates
+// between concrete variants:
+//   - "user"        → SenderUser is set
+//   - "hidden_user" → SenderUserName is set
+//   - "chat"        → SenderChat is set; AuthorSignature optional
+//   - "channel"     → Chat and MessageID are set; AuthorSignature optional
+type MessageOrigin struct {
+	// Type of the message origin. One of "user", "hidden_user", "chat", "channel".
+	Type string `json:"type"`
+	// Date the message was sent originally in Unix time.
+	Date int `json:"date"`
+	// SenderUser is the user that sent the message originally. Set when Type
+	// is "user".
+	//
+	// optional
+	SenderUser *User `json:"sender_user,omitempty"`
+	// SenderUserName is the name of the user that sent the message originally.
+	// Set when Type is "hidden_user".
+	//
+	// optional
+	SenderUserName string `json:"sender_user_name,omitempty"`
+	// SenderChat is the chat that sent the message originally. Set when Type
+	// is "chat".
+	//
+	// optional
+	SenderChat *Chat `json:"sender_chat,omitempty"`
+	// AuthorSignature is the signature of the original message author or
+	// the post author for messages from a channel. Optional for "chat" and
+	// "channel".
+	//
+	// optional
+	AuthorSignature string `json:"author_signature,omitempty"`
+	// Chat is the channel chat to which the message was originally sent.
+	// Set when Type is "channel".
+	//
+	// optional
+	Chat *Chat `json:"chat,omitempty"`
+	// MessageID is the unique message identifier inside the chat. Set when
+	// Type is "channel".
+	//
+	// optional
+	MessageID int `json:"message_id,omitempty"`
+}
+
+// InaccessibleMessage describes a message that was deleted or otherwise
+// inaccessible to the bot.
+type InaccessibleMessage struct {
+	// Chat the message belonged to.
+	Chat Chat `json:"chat"`
+	// MessageID is the unique message identifier inside the chat.
+	MessageID int `json:"message_id"`
+	// Date is always 0. The field is present in order to mimic the Message
+	// type so that callers can distinguish accessible from inaccessible
+	// messages by checking Date == 0.
+	Date int `json:"date"`
 }
 
 // LinkPreviewOptions describes the options used for link preview generation.
