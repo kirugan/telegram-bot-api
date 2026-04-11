@@ -2781,23 +2781,50 @@ type RevenueWithdrawalState struct {
 
 // Transaction partner type constants.
 const (
-	TransactionPartnerTypeUser        = "user"
-	TransactionPartnerTypeFragment    = "fragment"
-	TransactionPartnerTypeTelegramAds = "telegram_ads"
-	TransactionPartnerTypeTelegramApi = "telegram_api"
-	TransactionPartnerTypeOther       = "other"
+	TransactionPartnerTypeUser             = "user"
+	TransactionPartnerTypeAffiliateProgram = "affiliate_program"
+	TransactionPartnerTypeFragment         = "fragment"
+	TransactionPartnerTypeTelegramAds      = "telegram_ads"
+	TransactionPartnerTypeTelegramApi      = "telegram_api"
+	TransactionPartnerTypeOther            = "other"
 )
+
+// AffiliateInfo contains information about the affiliate that received a
+// commission via an affiliate program.
+type AffiliateInfo struct {
+	// AffiliateUser is the bot or user that received the commission.
+	//
+	// optional
+	AffiliateUser *User `json:"affiliate_user,omitempty"`
+	// AffiliateChat is the chat that received the commission.
+	//
+	// optional
+	AffiliateChat *Chat `json:"affiliate_chat,omitempty"`
+	// CommissionPerMille is the number of Telegram Stars received by the
+	// affiliate for each 1000 Telegram Stars received by the bot from
+	// referred users.
+	CommissionPerMille int `json:"commission_per_mille"`
+	// Amount is the integer amount of Telegram Stars received by the
+	// affiliate from the transaction, rounded to 0; can be negative.
+	Amount int `json:"amount"`
+	// NanostarAmount is the number of 1/1000000000 shares of Telegram Stars
+	// received by the affiliate. Can be negative.
+	//
+	// optional
+	NanostarAmount int `json:"nanostar_amount,omitempty"`
+}
 
 // TransactionPartner describes the source or recipient of a StarTransaction.
 // Flat polymorphic by Type:
-//   - "user"         → User is set; InvoicePayload / PaidMedia optionally set
-//   - "fragment"     → WithdrawalState is set
-//   - "telegram_ads" → (no extra fields)
-//   - "telegram_api" → RequestCount is set
-//   - "other"        → (no extra fields)
+//   - "user"              → User is set; Affiliate / InvoicePayload / PaidMedia / Gift optionally set
+//   - "affiliate_program" → SponsorUser, CommissionPerMille
+//   - "fragment"          → WithdrawalState is set
+//   - "telegram_ads"      → (no extra fields)
+//   - "telegram_api"      → RequestCount is set
+//   - "other"             → (no extra fields)
 type TransactionPartner struct {
-	// Type of the transaction partner. One of "user", "fragment",
-	// "telegram_ads", "telegram_api", "other".
+	// Type of the transaction partner. One of "user", "affiliate_program",
+	// "fragment", "telegram_ads", "telegram_api", "other".
 	Type string `json:"type"`
 	// RequestCount is the number of successful requests that caused the
 	// transaction. Set when Type is "telegram_api".
@@ -2808,6 +2835,11 @@ type TransactionPartner struct {
 	//
 	// optional
 	User *User `json:"user,omitempty"`
+	// Affiliate information if the transaction involves an affiliate
+	// commission. Set when Type is "user".
+	//
+	// optional
+	Affiliate *AffiliateInfo `json:"affiliate,omitempty"`
 	// InvoicePayload is the bot-specified invoice payload. Set when Type is
 	// "user".
 	//
@@ -2829,6 +2861,17 @@ type TransactionPartner struct {
 	//
 	// optional
 	Gift *Gift `json:"gift,omitempty"`
+	// SponsorUser is the bot owning the affiliate program. Set when Type
+	// is "affiliate_program".
+	//
+	// optional
+	SponsorUser *User `json:"sponsor_user,omitempty"`
+	// CommissionPerMille is the number of Telegram Stars received by the
+	// bot for each 1000 Telegram Stars received by the affiliate program
+	// sponsor from referred users. Set when Type is "affiliate_program".
+	//
+	// optional
+	CommissionPerMille int `json:"commission_per_mille,omitempty"`
 	// WithdrawalState is the state of the transaction if the transaction is
 	// outgoing. Set when Type is "fragment".
 	//
@@ -2844,6 +2887,11 @@ type StarTransaction struct {
 	ID string `json:"id"`
 	// Amount of Telegram Stars transferred by the transaction.
 	Amount int `json:"amount"`
+	// NanostarAmount is the number of 1/1000000000 shares of Telegram Stars
+	// transferred by the transaction; from 0 to 999999999.
+	//
+	// optional
+	NanostarAmount int `json:"nanostar_amount,omitempty"`
 	// Date the transaction was created in Unix time.
 	Date int `json:"date"`
 	// Source of an incoming transaction (e.g. a user purchasing goods or
