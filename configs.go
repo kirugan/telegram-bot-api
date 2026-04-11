@@ -115,6 +115,10 @@ const (
 	// connected business account.
 	UpdateTypeDeletedBusinessMessages = "deleted_business_messages"
 
+	// UpdateTypePurchasedPaidMedia is when a user purchased paid media with
+	// a non-empty payload sent by the bot in a non-channel chat.
+	UpdateTypePurchasedPaidMedia = "purchased_paid_media"
+
 	// UpdateTypeMyChatMember is when the bot's chat member status was updated in a chat. For private chats, this
 	// update is received only when the bot is blocked or unblocked by the user.
 	UpdateTypeMyChatMember = "my_chat_member"
@@ -3180,6 +3184,9 @@ type SendPaidMediaConfig struct {
 	StarCount int
 	// Media is the list of media to be sent; 1-10 items.
 	Media []InputPaidMedia
+	// Payload is the bot-defined paid media payload, 0-128 bytes. Received
+	// back in a PurchasedPaidMedia update and in TransactionPartner.
+	Payload string
 	// Caption of the media to be sent, 0-1024 characters after entities parsing.
 	Caption string
 	// ParseMode mode for parsing entities in the caption.
@@ -3201,6 +3208,7 @@ func (config SendPaidMediaConfig) params() (Params, error) {
 	}
 
 	params.AddNonZero("star_count", config.StarCount)
+	params.AddNonEmpty("payload", config.Payload)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)

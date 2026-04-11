@@ -137,6 +137,11 @@ type Update struct {
 	//
 	// optional
 	DeletedBusinessMessages *BusinessMessagesDeleted `json:"deleted_business_messages,omitempty"`
+	// PurchasedPaidMedia is a user purchased paid media with a non-empty
+	// payload sent by the bot in a non-channel chat.
+	//
+	// optional
+	PurchasedPaidMedia *PaidMediaPurchased `json:"purchased_paid_media,omitempty"`
 	// ChatBoost is a boost added to a chat or changed. The bot must be an
 	// administrator in the chat to receive these updates.
 	//
@@ -2867,6 +2872,15 @@ type PaidMediaInfo struct {
 	PaidMedia []PaidMedia `json:"paid_media"`
 }
 
+// PaidMediaPurchased is received when a user purchases paid media with a
+// non-empty payload sent by the bot in a non-channel chat.
+type PaidMediaPurchased struct {
+	// From is the user who purchased the media.
+	From User `json:"from"`
+	// PaidMediaPayload is the bot-specified paid media payload.
+	PaidMediaPayload string `json:"paid_media_payload"`
+}
+
 // InputPaidMedia describes the paid media to be sent. Flat polymorphic by
 // Type:
 //   - "photo" → Media is set
@@ -3149,6 +3163,12 @@ type ChatBoostSource struct {
 	//
 	// optional
 	IsUnclaimed bool `json:"is_unclaimed,omitempty"`
+	// PrizeStarCount is the number of Telegram Stars to be split between
+	// giveaway winners. Set for "giveaway" and only for Telegram Star
+	// giveaways.
+	//
+	// optional
+	PrizeStarCount int `json:"prize_star_count,omitempty"`
 }
 
 // ChatBoost contains information about a chat boost.
@@ -3226,14 +3246,28 @@ type Giveaway struct {
 	//
 	// optional
 	PremiumSubscriptionMonthCount int `json:"premium_subscription_month_count,omitempty"`
+	// PrizeStarCount is the number of Telegram Stars to be split between
+	// giveaway winners. For Telegram Star giveaways only.
+	//
+	// optional
+	PrizeStarCount int `json:"prize_star_count,omitempty"`
 }
 
 // GiveawayCreated represents a service message about the creation of a
-// scheduled giveaway. Currently holds no information.
-type GiveawayCreated struct{}
+// scheduled giveaway.
+type GiveawayCreated struct {
+	// PrizeStarCount is the number of Telegram Stars to be split between
+	// giveaway winners. For Telegram Star giveaways only.
+	//
+	// optional
+	PrizeStarCount int `json:"prize_star_count,omitempty"`
+}
 
 // GiveawayWinners represents a message about the completion of a giveaway
 // with public winners.
+//
+// The PrizeStarCount field holds the number of Telegram Stars split between
+// winners, if this was a Telegram Star giveaway.
 type GiveawayWinners struct {
 	// Chat that created the giveaway.
 	Chat Chat `json:"chat"`
@@ -3257,6 +3291,11 @@ type GiveawayWinners struct {
 	//
 	// optional
 	PremiumSubscriptionMonthCount int `json:"premium_subscription_month_count,omitempty"`
+	// PrizeStarCount is the number of Telegram Stars that were split between
+	// giveaway winners. For Telegram Star giveaways only.
+	//
+	// optional
+	PrizeStarCount int `json:"prize_star_count,omitempty"`
 	// UnclaimedPrizeCount is the number of undistributed prizes.
 	//
 	// optional
@@ -3291,6 +3330,11 @@ type GiveawayCompleted struct {
 	//
 	// optional
 	GiveawayMessage *Message `json:"giveaway_message,omitempty"`
+	// IsStarGiveaway is true, if the giveaway is a Telegram Star giveaway.
+	// Otherwise, currently, the giveaway is a Telegram Premium giveaway.
+	//
+	// optional
+	IsStarGiveaway bool `json:"is_star_giveaway,omitempty"`
 }
 
 // Message origin type constants.
