@@ -77,17 +77,20 @@ func (bot *BotAPI) SetAPIEndpoint(apiEndpoint string) {
 }
 
 func buildParams(in Params) url.Values {
-	if in == nil {
-		return url.Values{}
-	}
-
 	out := url.Values{}
-
 	for key, value := range in {
 		out.Set(key, value)
 	}
-
 	return out
+}
+
+// closeBody drains any unread bytes before closing the response body so that
+// net/http can return the underlying connection to the keep-alive pool.
+// json.Decoder may stop short of EOF (trailing whitespace, partial errors),
+// and an undrained body forces the transport to discard the connection.
+func closeBody(body io.ReadCloser) {
+	_, _ = io.Copy(io.Discard, body)
+	body.Close()
 }
 
 // MakeRequest makes a request to a specific endpoint with our token.
@@ -100,7 +103,7 @@ func (bot *BotAPI) MakeRequest(endpoint string, params Params) (*APIResponse, er
 
 	values := buildParams(params)
 
-	req, err := http.NewRequest("POST", method, strings.NewReader(values.Encode()))
+	req, err := http.NewRequest(http.MethodPost, method, strings.NewReader(values.Encode()))
 	if err != nil {
 		return &APIResponse{}, err
 	}
@@ -110,7 +113,7 @@ func (bot *BotAPI) MakeRequest(endpoint string, params Params) (*APIResponse, er
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	var apiResp APIResponse
 	bytes, err := bot.decodeAPIResponse(resp.Body, &apiResp)
@@ -223,7 +226,7 @@ func (bot *BotAPI) UploadFiles(endpoint string, params Params, files []RequestFi
 
 	method := fmt.Sprintf(bot.apiEndpoint, bot.Token, endpoint)
 
-	req, err := http.NewRequest("POST", method, r)
+	req, err := http.NewRequest(http.MethodPost, method, r)
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +237,7 @@ func (bot *BotAPI) UploadFiles(endpoint string, params Params, files []RequestFi
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer closeBody(resp.Body)
 
 	var apiResp APIResponse
 	bytes, err := bot.decodeAPIResponse(resp.Body, &apiResp)
@@ -254,6 +257,7 @@ func (bot *BotAPI) UploadFiles(endpoint string, params Params, files []RequestFi
 		}
 
 		return &apiResp, &Error{
+			Code:               apiResp.ErrorCode,
 			Message:            apiResp.Description,
 			ResponseParameters: parameters,
 		}
