@@ -951,11 +951,18 @@ type SendPollConfig struct {
 	Question              string
 	QuestionParseMode     string
 	QuestionEntities      []MessageEntity
+	Description           string
+	DescriptionParseMode  string
+	DescriptionEntities   []MessageEntity
 	Options               []InputPollOption
 	IsAnonymous           bool
 	Type                  string
 	AllowsMultipleAnswers bool
-	CorrectOptionID       int64
+	AllowsRevoting        bool
+	ShuffleOptions        bool
+	AllowAddingOptions    bool
+	HideResultsUntilCloses bool
+	CorrectOptionIDs      []int
 	Explanation           string
 	ExplanationParseMode  string
 	ExplanationEntities   []MessageEntity
@@ -975,13 +982,26 @@ func (config SendPollConfig) params() (Params, error) {
 	if err = params.AddAny("question_entities", config.QuestionEntities); err != nil {
 		return params, err
 	}
+	params.AddNonEmpty("description", config.Description)
+	params.AddNonEmpty("description_parse_mode", config.DescriptionParseMode)
+	if err = params.AddAny("description_entities", config.DescriptionEntities); err != nil {
+		return params, err
+	}
 	if err = params.AddAny("options", config.Options); err != nil {
 		return params, err
 	}
 	params["is_anonymous"] = strconv.FormatBool(config.IsAnonymous)
 	params.AddNonEmpty("type", config.Type)
 	params["allows_multiple_answers"] = strconv.FormatBool(config.AllowsMultipleAnswers)
-	params["correct_option_id"] = strconv.FormatInt(config.CorrectOptionID, 10)
+	params.AddBool("allows_revoting", config.AllowsRevoting)
+	params.AddBool("shuffle_options", config.ShuffleOptions)
+	params.AddBool("allow_adding_options", config.AllowAddingOptions)
+	params.AddBool("hide_results_until_closes", config.HideResultsUntilCloses)
+	if len(config.CorrectOptionIDs) > 0 {
+		if err = params.AddAny("correct_option_ids", config.CorrectOptionIDs); err != nil {
+			return params, err
+		}
+	}
 	params.AddBool("is_closed", config.IsClosed)
 	params.AddNonEmpty("explanation", config.Explanation)
 	params.AddNonEmpty("explanation_parse_mode", config.ExplanationParseMode)

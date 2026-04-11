@@ -1012,6 +1012,21 @@ type Message struct {
 	//
 	// optional
 	ChatOwnerChanged *ChatOwnerChanged `json:"chat_owner_changed,omitempty"`
+	// PollOptionAdded is a service message about a poll option being added
+	// to a poll.
+	//
+	// optional
+	PollOptionAdded *PollOptionAdded `json:"poll_option_added,omitempty"`
+	// PollOptionDeleted is a service message about a poll option being
+	// deleted from a poll.
+	//
+	// optional
+	PollOptionDeleted *PollOptionDeleted `json:"poll_option_deleted,omitempty"`
+	// ReplyToPollOptionID is the persistent identifier of the poll option
+	// that this message is a reply to.
+	//
+	// optional
+	ReplyToPollOptionID string `json:"reply_to_poll_option_id,omitempty"`
 	// PaidMessagePriceChanged is a service message about a change in the
 	// price of paid messages within the chat.
 	//
@@ -1553,6 +1568,46 @@ type PollOption struct {
 	TextEntities []MessageEntity `json:"text_entities,omitempty"`
 	// VoterCount is the number of users that voted for this option
 	VoterCount int `json:"voter_count"`
+	// PersistentID is the persistent identifier of the poll option; stays
+	// the same even if the option is moved, renamed, added, or deleted.
+	//
+	// optional
+	PersistentID string `json:"persistent_id,omitempty"`
+	// AddedByUser is the user that added the option to the poll.
+	//
+	// optional
+	AddedByUser *User `json:"added_by_user,omitempty"`
+	// AddedByChat is the chat that added the option to the poll anonymously.
+	//
+	// optional
+	AddedByChat *Chat `json:"added_by_chat,omitempty"`
+	// AdditionDate is the point in time (Unix timestamp) when the option
+	// was added to the poll.
+	//
+	// optional
+	AdditionDate int `json:"addition_date,omitempty"`
+}
+
+// PollOptionAdded describes a service message about a poll option being
+// added to a poll.
+type PollOptionAdded struct {
+	// PollMessage is the message containing the poll.
+	//
+	// optional
+	PollMessage *Message `json:"poll_message,omitempty"`
+	// Option is the added poll option.
+	Option PollOption `json:"option"`
+}
+
+// PollOptionDeleted describes a service message about a poll option being
+// deleted from a poll.
+type PollOptionDeleted struct {
+	// PollMessage is the message containing the poll.
+	//
+	// optional
+	PollMessage *Message `json:"poll_message,omitempty"`
+	// OptionPersistentID is the persistent identifier of the deleted option.
+	OptionPersistentID string `json:"option_persistent_id"`
 }
 
 // PollAnswer represents an answer of a user in a non-anonymous poll.
@@ -1571,6 +1626,11 @@ type PollAnswer struct {
 	// OptionIDs is the 0-based identifiers of poll options chosen by the user.
 	// May be empty if user retracted vote.
 	OptionIDs []int `json:"option_ids"`
+	// OptionPersistentIDs is the persistent identifiers of the poll options
+	// chosen by the user, matching PollOption.PersistentID.
+	//
+	// optional
+	OptionPersistentIDs []string `json:"option_persistent_ids,omitempty"`
 }
 
 // Poll contains information about a poll.
@@ -1596,12 +1656,26 @@ type Poll struct {
 	Type string `json:"type"`
 	// AllowsMultipleAnswers is true, if the poll allows multiple answers
 	AllowsMultipleAnswers bool `json:"allows_multiple_answers"`
-	// CorrectOptionID is the 0-based identifier of the correct answer option.
-	// Available only for polls in quiz mode, which are closed, or was sent (not
-	// forwarded) by the bot or to the private chat with the bot.
+	// CorrectOptionIDs lists the 0-based identifiers of the correct answer
+	// options. Available only for polls in quiz mode, which are closed, or
+	// was sent (not forwarded) by the bot or to the private chat with the
+	// bot. Multi-answer quizzes may have more than one correct option.
 	//
 	// optional
-	CorrectOptionID int `json:"correct_option_id,omitempty"`
+	CorrectOptionIDs []int `json:"correct_option_ids,omitempty"`
+	// AllowsRevoting is true, if the poll allows users to change their vote.
+	//
+	// optional
+	AllowsRevoting bool `json:"allows_revoting,omitempty"`
+	// Description is the text of the poll description.
+	//
+	// optional
+	Description string `json:"description,omitempty"`
+	// DescriptionEntities are the special entities that appear in the
+	// description.
+	//
+	// optional
+	DescriptionEntities []MessageEntity `json:"description_entities,omitempty"`
 	// Explanation is text that is shown when a user chooses an incorrect answer
 	// or taps on the lamp icon in a quiz-style poll, 0-200 characters
 	//
@@ -4852,6 +4926,11 @@ type ReplyParameters struct {
 	//
 	// optional
 	ChecklistTaskID int `json:"checklist_task_id,omitempty"`
+	// PollOptionID is the persistent identifier of the specific poll
+	// option to reply to. Required if replying to a poll option.
+	//
+	// optional
+	PollOptionID string `json:"poll_option_id,omitempty"`
 }
 
 // ChatLocation represents a location to which a chat is connected.
