@@ -409,6 +409,7 @@ type ForwardConfig struct {
 	FromChatID          int64 // required
 	FromChannelUsername string
 	MessageID           int // required
+	VideoStartTimestamp int
 }
 
 func (config ForwardConfig) params() (Params, error) {
@@ -419,6 +420,7 @@ func (config ForwardConfig) params() (Params, error) {
 
 	params.AddNonZero64("from_chat_id", config.FromChatID)
 	params.AddNonZero("message_id", config.MessageID)
+	params.AddNonZero("video_start_timestamp", config.VideoStartTimestamp)
 
 	return params, nil
 }
@@ -433,6 +435,7 @@ type CopyMessageConfig struct {
 	FromChatID            int64
 	FromChannelUsername   string
 	MessageID             int
+	VideoStartTimestamp   int
 	Caption               string
 	ParseMode             string
 	CaptionEntities       []MessageEntity
@@ -449,6 +452,7 @@ func (config CopyMessageConfig) params() (Params, error) {
 		return params, err
 	}
 	params.AddNonZero("message_id", config.MessageID)
+	params.AddNonZero("video_start_timestamp", config.VideoStartTimestamp)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
@@ -628,6 +632,8 @@ func (config StickerConfig) files() []RequestFile {
 type VideoConfig struct {
 	BaseFile
 	Thumbnail             RequestFileData
+	Cover                 RequestFileData
+	StartTimestamp        int
 	Duration              int
 	Caption               string
 	ParseMode             string
@@ -644,6 +650,7 @@ func (config VideoConfig) params() (Params, error) {
 	}
 
 	params.AddNonZero("duration", config.Duration)
+	params.AddNonZero("start_timestamp", config.StartTimestamp)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
@@ -668,6 +675,13 @@ func (config VideoConfig) files() []RequestFile {
 		files = append(files, RequestFile{
 			Name: "thumbnail",
 			Data: config.Thumbnail,
+		})
+	}
+
+	if config.Cover != nil {
+		files = append(files, RequestFile{
+			Name: "cover",
+			Data: config.Cover,
 		})
 	}
 
@@ -2060,14 +2074,20 @@ func (GetAvailableGiftsConfig) params() (Params, error) {
 	return make(Params), nil
 }
 
-// SendGiftConfig sends a gift to a user.
+// SendGiftConfig sends a gift to a user or channel chat.
+//
+// Provide the recipient via either UserID (for a user) or ChatID /
+// ChannelUsername (for a channel chat); exactly one of UserID or the chat
+// identifier should be set.
 type SendGiftConfig struct {
-	UserID        int64
-	GiftID        string
-	PayForUpgrade bool
-	Text          string
-	TextParseMode string
-	TextEntities  []MessageEntity
+	UserID          int64
+	ChatID          int64
+	ChannelUsername string
+	GiftID          string
+	PayForUpgrade   bool
+	Text            string
+	TextParseMode   string
+	TextEntities    []MessageEntity
 }
 
 func (SendGiftConfig) method() string {
@@ -2078,6 +2098,11 @@ func (config SendGiftConfig) params() (Params, error) {
 	params := make(Params)
 
 	params.AddNonZero64("user_id", config.UserID)
+	if config.ChatID != 0 || config.ChannelUsername != "" {
+		if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
+			return params, err
+		}
+	}
 	params["gift_id"] = config.GiftID
 	params.AddBool("pay_for_upgrade", config.PayForUpgrade)
 	params.AddNonEmpty("text", config.Text)
@@ -3895,6 +3920,10 @@ func prepareInputMediaParam(inputMedia interface{}, idx int) interface{} {
 			m.Thumbnail = fileAttach(fmt.Sprintf("attach://file-%d-thumbnail", idx))
 		}
 
+		if m.Cover != nil && m.Cover.NeedsUpload() {
+			m.Cover = fileAttach(fmt.Sprintf("attach://file-%d-cover", idx))
+		}
+
 		return m
 	case InputMediaAudio:
 		if m.Media.NeedsUpload() {
@@ -3950,8 +3979,15 @@ func prepareInputMediaFile(inputMedia interface{}, idx int) []RequestFile {
 
 		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
 			files = append(files, RequestFile{
-				Name: fmt.Sprintf("file-%d", idx),
+				Name: fmt.Sprintf("file-%d-thumbnail", idx),
 				Data: m.Thumbnail,
+			})
+		}
+
+		if m.Cover != nil && m.Cover.NeedsUpload() {
+			files = append(files, RequestFile{
+				Name: fmt.Sprintf("file-%d-cover", idx),
+				Data: m.Cover,
 			})
 		}
 	case InputMediaDocument:
@@ -3964,7 +4000,7 @@ func prepareInputMediaFile(inputMedia interface{}, idx int) []RequestFile {
 
 		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
 			files = append(files, RequestFile{
-				Name: fmt.Sprintf("file-%d", idx),
+				Name: fmt.Sprintf("file-%d-thumbnail", idx),
 				Data: m.Thumbnail,
 			})
 		}
@@ -3978,7 +4014,7 @@ func prepareInputMediaFile(inputMedia interface{}, idx int) []RequestFile {
 
 		if m.Thumbnail != nil && m.Thumbnail.NeedsUpload() {
 			files = append(files, RequestFile{
-				Name: fmt.Sprintf("file-%d", idx),
+				Name: fmt.Sprintf("file-%d-thumbnail", idx),
 				Data: m.Thumbnail,
 			})
 		}

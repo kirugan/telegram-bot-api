@@ -565,6 +565,10 @@ type ChatFullInfo struct {
 	//
 	// optional
 	CanSendPaidMedia bool `json:"can_send_paid_media,omitempty"`
+	// CanSendGift is true, if gifts can be sent to the chat. Channel chats only.
+	//
+	// optional
+	CanSendGift bool `json:"can_send_gift,omitempty"`
 }
 
 // Message represents a message.
@@ -1301,6 +1305,15 @@ type Video struct {
 	//
 	// optional
 	Thumbnail *PhotoSize `json:"thumbnail,omitempty"`
+	// Cover is the available sizes of the cover of the video in the message.
+	//
+	// optional
+	Cover []PhotoSize `json:"cover,omitempty"`
+	// StartTimestamp is the timestamp in seconds from which the video will
+	// play in the message.
+	//
+	// optional
+	StartTimestamp int `json:"start_timestamp,omitempty"`
 	// FileName is the original filename as defined by sender
 	//
 	// optional
@@ -2782,6 +2795,7 @@ type RevenueWithdrawalState struct {
 // Transaction partner type constants.
 const (
 	TransactionPartnerTypeUser             = "user"
+	TransactionPartnerTypeChat             = "chat"
 	TransactionPartnerTypeAffiliateProgram = "affiliate_program"
 	TransactionPartnerTypeFragment         = "fragment"
 	TransactionPartnerTypeTelegramAds      = "telegram_ads"
@@ -2817,15 +2831,21 @@ type AffiliateInfo struct {
 // TransactionPartner describes the source or recipient of a StarTransaction.
 // Flat polymorphic by Type:
 //   - "user"              → User is set; Affiliate / InvoicePayload / PaidMedia / Gift optionally set
+//   - "chat"              → Chat is set; Gift optionally set
 //   - "affiliate_program" → SponsorUser, CommissionPerMille
 //   - "fragment"          → WithdrawalState is set
 //   - "telegram_ads"      → (no extra fields)
 //   - "telegram_api"      → RequestCount is set
 //   - "other"             → (no extra fields)
 type TransactionPartner struct {
-	// Type of the transaction partner. One of "user", "affiliate_program",
-	// "fragment", "telegram_ads", "telegram_api", "other".
+	// Type of the transaction partner. One of "user", "chat",
+	// "affiliate_program", "fragment", "telegram_ads", "telegram_api",
+	// "other".
 	Type string `json:"type"`
+	// Chat that the transaction involves. Set when Type is "chat".
+	//
+	// optional
+	Chat *Chat `json:"chat,omitempty"`
 	// RequestCount is the number of successful requests that caused the
 	// transaction. Set when Type is "telegram_api".
 	//
@@ -3016,7 +3036,8 @@ type PreparedInlineMessage struct {
 // InputPaidMedia describes the paid media to be sent. Flat polymorphic by
 // Type:
 //   - "photo" → Media is set
-//   - "video" → Media, Thumbnail, Width, Height, Duration, SupportsStreaming
+//   - "video" → Media, Thumbnail, Cover, StartTimestamp, Width, Height,
+//     Duration, SupportsStreaming
 type InputPaidMedia struct {
 	// Type of the media. One of "photo", "video".
 	Type string `json:"type"`
@@ -3027,6 +3048,15 @@ type InputPaidMedia struct {
 	//
 	// optional
 	Thumbnail RequestFileData `json:"thumbnail,omitempty"`
+	// Cover for the video in the message (video only).
+	//
+	// optional
+	Cover RequestFileData `json:"cover,omitempty"`
+	// StartTimestamp is the timestamp in seconds from which the video will
+	// play in the message (video only).
+	//
+	// optional
+	StartTimestamp int `json:"start_timestamp,omitempty"`
 	// Width of the video.
 	//
 	// optional
@@ -3791,6 +3821,15 @@ type InputMediaVideo struct {
 	//
 	// optional
 	Thumbnail RequestFileData `json:"thumbnail,omitempty"`
+	// Cover for the video in the message.
+	//
+	// optional
+	Cover RequestFileData `json:"cover,omitempty"`
+	// StartTimestamp is the timestamp in seconds from which the video will
+	// play in the message.
+	//
+	// optional
+	StartTimestamp int `json:"start_timestamp,omitempty"`
 	// Width video width
 	//
 	// optional
