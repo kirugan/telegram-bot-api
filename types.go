@@ -664,6 +664,10 @@ type Message struct {
 	//
 	// optional
 	SenderBoostCount int `json:"sender_boost_count,omitempty"`
+	// SenderTag is the custom tag assigned to the sender in the chat.
+	//
+	// optional
+	SenderTag string `json:"sender_tag,omitempty"`
 	// SenderBusinessBot is the bot that actually sent the message on behalf
 	// of the business account. Available only for outgoing messages sent on
 	// behalf of the connected business account.
@@ -1213,7 +1217,8 @@ type MessageEntity struct {
 	//  “pre” (monowidth block),
 	//  “text_link” (for clickable text URLs),
 	//  “text_mention” (for users without usernames),
-	//  “custom_emoji” (for inline custom emoji stickers)
+	//  “custom_emoji” (for inline custom emoji stickers),
+	//  “date_time” (for formatted date and time)
 	Type string `json:"type"`
 	// Offset in UTF-16 code units to the start of the entity
 	Offset int `json:"offset"`
@@ -2401,6 +2406,7 @@ type ChatAdministratorRights struct {
 	CanDeleteStories        bool `json:"can_delete_stories"`
 	CanManageTopics         bool `json:"can_manage_topics"`
 	CanManageDirectMessages bool `json:"can_manage_direct_messages"`
+	CanManageTags           bool `json:"can_manage_tags"`
 }
 
 // ChatMember contains information about one member of a chat.
@@ -2520,6 +2526,19 @@ type ChatMember struct {
 	//
 	// optional
 	CanManageDirectMessages bool `json:"can_manage_direct_messages,omitempty"`
+	// CanManageTags administrators only.
+	// True, if the administrator can manage tags of chat members.
+	//
+	// optional
+	CanManageTags bool `json:"can_manage_tags,omitempty"`
+	// Tag is the member's custom tag in the chat, if any.
+	//
+	// optional
+	Tag string `json:"tag,omitempty"`
+	// CanEditTag is true, if the user is allowed to edit their own tag.
+	//
+	// optional
+	CanEditTag bool `json:"can_edit_tag,omitempty"`
 	// IsMember is true, if the user is a member of the chat at the moment of
 	// the request
 	IsMember bool `json:"is_member"`
@@ -2701,6 +2720,10 @@ type ChatPermissions struct {
 	//
 	// optional
 	CanManageTopics bool `json:"can_manage_topics,omitempty"`
+	// CanEditTag is true, if users are allowed to edit their own tag.
+	//
+	// optional
+	CanEditTag bool `json:"can_edit_tag,omitempty"`
 }
 
 // Story represents a story.

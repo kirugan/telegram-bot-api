@@ -1510,6 +1510,7 @@ type PromoteChatMemberConfig struct {
 	CanDeleteStories        bool
 	CanManageTopics         bool
 	CanManageDirectMessages bool
+	CanManageTags           bool
 }
 
 func (config PromoteChatMemberConfig) method() string {
@@ -1540,6 +1541,29 @@ func (config PromoteChatMemberConfig) params() (Params, error) {
 	params.AddBool("can_delete_stories", config.CanDeleteStories)
 	params.AddBool("can_manage_topics", config.CanManageTopics)
 	params.AddBool("can_manage_direct_messages", config.CanManageDirectMessages)
+	params.AddBool("can_manage_tags", config.CanManageTags)
+
+	return params, nil
+}
+
+// SetChatMemberTagConfig sets the custom tag for a chat member.
+type SetChatMemberTagConfig struct {
+	ChatMemberConfig
+	Tag string
+}
+
+func (SetChatMemberTagConfig) method() string {
+	return "setChatMemberTag"
+}
+
+func (config SetChatMemberTagConfig) params() (Params, error) {
+	params := make(Params)
+
+	if err := params.AddFirstValid("chat_id", config.ChatID, config.SuperGroupUsername, config.ChannelUsername); err != nil {
+		return params, err
+	}
+	params.AddNonZero64("user_id", config.UserID)
+	params.AddNonEmpty("tag", config.Tag)
 
 	return params, nil
 }
