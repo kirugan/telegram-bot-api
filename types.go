@@ -894,6 +894,7 @@ type MessageEntity struct {
 	//  “underline” (underlined text),
 	//  “strikethrough” (strikethrough text),
 	//  "spoiler" (spoiler message),
+	//  “blockquote” (block quotation),
 	//  “code” (monowidth string),
 	//  “pre” (monowidth block),
 	//  “text_link” (for clickable text URLs),
