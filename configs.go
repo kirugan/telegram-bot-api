@@ -948,27 +948,27 @@ func (config ContactConfig) method() string {
 // SendPollConfig allows you to send a poll.
 type SendPollConfig struct {
 	BaseChat
-	Question              string
-	QuestionParseMode     string
-	QuestionEntities      []MessageEntity
-	Description           string
-	DescriptionParseMode  string
-	DescriptionEntities   []MessageEntity
-	Options               []InputPollOption
-	IsAnonymous           bool
-	Type                  string
-	AllowsMultipleAnswers bool
-	AllowsRevoting        bool
-	ShuffleOptions        bool
-	AllowAddingOptions    bool
+	Question               string
+	QuestionParseMode      string
+	QuestionEntities       []MessageEntity
+	Description            string
+	DescriptionParseMode   string
+	DescriptionEntities    []MessageEntity
+	Options                []InputPollOption
+	IsAnonymous            bool
+	Type                   string
+	AllowsMultipleAnswers  bool
+	AllowsRevoting         bool
+	ShuffleOptions         bool
+	AllowAddingOptions     bool
 	HideResultsUntilCloses bool
-	CorrectOptionIDs      []int
-	Explanation           string
-	ExplanationParseMode  string
-	ExplanationEntities   []MessageEntity
-	OpenPeriod            int
-	CloseDate             int
-	IsClosed              bool
+	CorrectOptionIDs       []int
+	Explanation            string
+	ExplanationParseMode   string
+	ExplanationEntities    []MessageEntity
+	OpenPeriod             int
+	CloseDate              int
+	IsClosed               bool
 }
 
 func (config SendPollConfig) params() (Params, error) {
@@ -4108,17 +4108,17 @@ func (config TransferBusinessAccountStarsConfig) params() (Params, error) {
 // GetBusinessAccountGiftsConfig returns the gifts received and owned by a
 // managed business account.
 type GetBusinessAccountGiftsConfig struct {
-	BusinessConnectionID         string
-	ExcludeUnsaved               bool
-	ExcludeSaved                 bool
-	ExcludeUnlimited             bool
-	ExcludeLimitedUpgradable     bool
-	ExcludeLimitedNonUpgradable  bool
-	ExcludeUnique                bool
-	ExcludeFromBlockchain        bool
-	SortByPrice                  bool
-	Offset                       string
-	Limit                        int
+	BusinessConnectionID        string
+	ExcludeUnsaved              bool
+	ExcludeSaved                bool
+	ExcludeUnlimited            bool
+	ExcludeLimitedUpgradable    bool
+	ExcludeLimitedNonUpgradable bool
+	ExcludeUnique               bool
+	ExcludeFromBlockchain       bool
+	SortByPrice                 bool
+	Offset                      string
+	Limit                       int
 }
 
 func (GetBusinessAccountGiftsConfig) method() string {

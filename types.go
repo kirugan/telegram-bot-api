@@ -3695,11 +3695,11 @@ type GiftInfo struct {
 
 // Unique gift origin constants.
 const (
-	UniqueGiftOriginUpgrade        = "upgrade"
-	UniqueGiftOriginTransfer       = "transfer"
-	UniqueGiftOriginResale         = "resale"
-	UniqueGiftOriginGiftedUpgrade  = "gifted_upgrade"
-	UniqueGiftOriginOffer          = "offer"
+	UniqueGiftOriginUpgrade       = "upgrade"
+	UniqueGiftOriginTransfer      = "transfer"
+	UniqueGiftOriginResale        = "resale"
+	UniqueGiftOriginGiftedUpgrade = "gifted_upgrade"
+	UniqueGiftOriginOffer         = "offer"
 )
 
 // UniqueGiftInfo describes a service message about a unique gift that was
