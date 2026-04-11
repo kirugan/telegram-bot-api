@@ -719,6 +719,11 @@ type Message struct {
 	//
 	// optional
 	Caption string `json:"caption,omitempty"`
+	// ShowCaptionAboveMedia is true, if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// CaptionEntities;
 	//
 	// optional
@@ -1031,6 +1036,7 @@ type MessageEntity struct {
 	//  “strikethrough” (strikethrough text),
 	//  "spoiler" (spoiler message),
 	//  “blockquote” (block quotation),
+	//  “expandable_blockquote” (collapsed-by-default block quotation),
 	//  “code” (monowidth string),
 	//  “pre” (monowidth block),
 	//  “text_link” (for clickable text URLs),
@@ -3373,15 +3379,23 @@ type BaseInputMedia struct {
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media. Valid for photo, video, and animation variants only; the
+	// field is ignored for audio and document.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
+	// HasSpoiler pass True if the media needs to be covered with a spoiler
+	// animation. Valid for photo, video, and animation variants only; the
+	// field is ignored for audio and document.
+	//
+	// optional
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
 }
 
 // InputMediaPhoto is a photo to send as part of a media group.
 type InputMediaPhoto struct {
 	BaseInputMedia
-	// HasSpoiler pass True if the photo needs to be covered with a spoiler animation.
-	//
-	// optional
-	HasSpoiler bool `json:"has_spoiler,omitempty"`
 }
 
 // InputMediaVideo is a video to send as part of a media group.
@@ -3408,10 +3422,6 @@ type InputMediaVideo struct {
 	//
 	// optional
 	SupportsStreaming bool `json:"supports_streaming,omitempty"`
-	// HasSpoiler pass True if the video needs to be covered with a spoiler animation.
-	//
-	// optional
-	HasSpoiler bool `json:"has_spoiler,omitempty"`
 }
 
 // InputMediaAnimation is an animation to send as part of a media group.
@@ -3434,10 +3444,6 @@ type InputMediaAnimation struct {
 	//
 	// optional
 	Duration int `json:"duration,omitempty"`
-	// HasSpoiler pass True if the animation needs to be covered with a spoiler animation.
-	//
-	// optional
-	HasSpoiler bool `json:"has_spoiler,omitempty"`
 }
 
 // InputMediaAudio is an audio to send as part of a media group.
@@ -3831,6 +3837,11 @@ type InlineQueryResultCachedGIF struct {
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// ReplyMarkup inline keyboard attached to the message.
 	//
 	// optional
@@ -3870,6 +3881,11 @@ type InlineQueryResultCachedMPEG4GIF struct {
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// ReplyMarkup inline keyboard attached to the message.
 	//
 	// optional
@@ -3911,6 +3927,11 @@ type InlineQueryResultCachedPhoto struct {
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// ReplyMarkup inline keyboard attached to the message.
 	//
 	// optional
@@ -3970,6 +3991,11 @@ type InlineQueryResultCachedVideo struct {
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// ReplyMarkup inline keyboard attached to the message
 	//
 	// optional
@@ -4216,6 +4242,11 @@ type InlineQueryResultGIF struct {
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// ReplyMarkup inline keyboard attached to the message
 	//
 	// optional
@@ -4328,6 +4359,11 @@ type InlineQueryResultMPEG4GIF struct {
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// ReplyMarkup inline keyboard attached to the message
 	//
 	// optional
@@ -4388,6 +4424,11 @@ type InlineQueryResultPhoto struct {
 	//
 	// optional
 	CaptionEntities []MessageEntity `json:"caption_entities,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// InputMessageContent content of the message to be sent instead of the photo.
 	//
 	// optional
@@ -4467,6 +4508,11 @@ type InlineQueryResultVideo struct {
 	//
 	// optional
 	Caption string `json:"caption,omitempty"`
+	// ShowCaptionAboveMedia pass True if the caption must be shown above the
+	// message media.
+	//
+	// optional
+	ShowCaptionAboveMedia bool `json:"show_caption_above_media,omitempty"`
 	// Width video width
 	//
 	// optional
@@ -4673,8 +4719,11 @@ type InputInvoiceMessageContent struct {
 	// Bot-defined invoice payload, 1-128 bytes. This will not be displayed to
 	// the user, use for your internal processes.
 	Payload string `json:"payload"`
-	// Payment provider token, obtained via Botfather
-	ProviderToken string `json:"provider_token"`
+	// Payment provider token, obtained via Botfather. Omit for payments in
+	// Telegram Stars.
+	//
+	// optional
+	ProviderToken string `json:"provider_token,omitempty"`
 	// Three-letter ISO 4217 currency code
 	Currency string `json:"currency"`
 	// Price breakdown, a JSON-serialized list of components (e.g. product

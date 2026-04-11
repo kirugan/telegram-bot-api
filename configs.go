@@ -421,12 +421,13 @@ func (config ForwardConfig) method() string {
 // CopyMessageConfig contains information about a copyMessage request.
 type CopyMessageConfig struct {
 	BaseChat
-	FromChatID          int64
-	FromChannelUsername string
-	MessageID           int
-	Caption             string
-	ParseMode           string
-	CaptionEntities     []MessageEntity
+	FromChatID            int64
+	FromChannelUsername   string
+	MessageID             int
+	Caption               string
+	ParseMode             string
+	CaptionEntities       []MessageEntity
+	ShowCaptionAboveMedia bool
 }
 
 func (config CopyMessageConfig) params() (Params, error) {
@@ -441,7 +442,8 @@ func (config CopyMessageConfig) params() (Params, error) {
 	params.AddNonZero("message_id", config.MessageID)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
-	err = params.AddInterface("caption_entities", config.CaptionEntities)
+	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
+	err = params.AddAny("caption_entities", config.CaptionEntities)
 
 	return params, err
 }
@@ -453,11 +455,12 @@ func (config CopyMessageConfig) method() string {
 // PhotoConfig contains information about a SendPhoto request.
 type PhotoConfig struct {
 	BaseFile
-	Thumbnail       RequestFileData
-	Caption         string
-	ParseMode       string
-	CaptionEntities []MessageEntity
-	HasSpoiler      bool
+	Thumbnail             RequestFileData
+	Caption               string
+	ParseMode             string
+	CaptionEntities       []MessageEntity
+	ShowCaptionAboveMedia bool
+	HasSpoiler            bool
 }
 
 func (config PhotoConfig) params() (Params, error) {
@@ -468,8 +471,9 @@ func (config PhotoConfig) params() (Params, error) {
 
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
 	params.AddBool("has_spoiler", config.HasSpoiler)
-	err = params.AddInterface("caption_entities", config.CaptionEntities)
+	err = params.AddAny("caption_entities", config.CaptionEntities)
 
 	return params, err
 }
@@ -614,13 +618,14 @@ func (config StickerConfig) files() []RequestFile {
 // VideoConfig contains information about a SendVideo request.
 type VideoConfig struct {
 	BaseFile
-	Thumbnail         RequestFileData
-	Duration          int
-	Caption           string
-	ParseMode         string
-	CaptionEntities   []MessageEntity
-	SupportsStreaming bool
-	HasSpoiler        bool
+	Thumbnail             RequestFileData
+	Duration              int
+	Caption               string
+	ParseMode             string
+	CaptionEntities       []MessageEntity
+	ShowCaptionAboveMedia bool
+	SupportsStreaming     bool
+	HasSpoiler            bool
 }
 
 func (config VideoConfig) params() (Params, error) {
@@ -632,9 +637,10 @@ func (config VideoConfig) params() (Params, error) {
 	params.AddNonZero("duration", config.Duration)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
 	params.AddBool("supports_streaming", config.SupportsStreaming)
 	params.AddBool("has_spoiler", config.HasSpoiler)
-	err = params.AddInterface("caption_entities", config.CaptionEntities)
+	err = params.AddAny("caption_entities", config.CaptionEntities)
 
 	return params, err
 }
@@ -662,12 +668,13 @@ func (config VideoConfig) files() []RequestFile {
 // AnimationConfig contains information about a SendAnimation request.
 type AnimationConfig struct {
 	BaseFile
-	Duration        int
-	Thumbnail       RequestFileData
-	Caption         string
-	ParseMode       string
-	CaptionEntities []MessageEntity
-	HasSpoiler      bool
+	Duration              int
+	Thumbnail             RequestFileData
+	Caption               string
+	ParseMode             string
+	CaptionEntities       []MessageEntity
+	ShowCaptionAboveMedia bool
+	HasSpoiler            bool
 }
 
 func (config AnimationConfig) params() (Params, error) {
@@ -679,8 +686,9 @@ func (config AnimationConfig) params() (Params, error) {
 	params.AddNonZero("duration", config.Duration)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
 	params.AddBool("has_spoiler", config.HasSpoiler)
-	err = params.AddInterface("caption_entities", config.CaptionEntities)
+	err = params.AddAny("caption_entities", config.CaptionEntities)
 
 	return params, err
 }
@@ -1096,9 +1104,10 @@ func (config EditMessageTextConfig) method() string {
 // EditMessageCaptionConfig allows you to modify the caption of a message.
 type EditMessageCaptionConfig struct {
 	BaseEdit
-	Caption         string
-	ParseMode       string
-	CaptionEntities []MessageEntity
+	Caption               string
+	ParseMode             string
+	CaptionEntities       []MessageEntity
+	ShowCaptionAboveMedia bool
 }
 
 func (config EditMessageCaptionConfig) params() (Params, error) {
@@ -1109,7 +1118,8 @@ func (config EditMessageCaptionConfig) params() (Params, error) {
 
 	params["caption"] = config.Caption
 	params.AddNonEmpty("parse_mode", config.ParseMode)
-	err = params.AddInterface("caption_entities", config.CaptionEntities)
+	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
+	err = params.AddAny("caption_entities", config.CaptionEntities)
 
 	return params, err
 }
@@ -1851,8 +1861,8 @@ type InvoiceConfig struct {
 	Title                     string         // required
 	Description               string         // required
 	Payload                   string         // required
-	ProviderToken             string         // required
-	Currency                  string         // required
+	ProviderToken             string         // omit for payments in Telegram Stars
+	Currency                  string         // required ("XTR" for Telegram Stars)
 	Prices                    []LabeledPrice // required
 	MaxTipAmount              int
 	SuggestedTipAmounts       []int
@@ -1880,14 +1890,14 @@ func (config InvoiceConfig) params() (Params, error) {
 	params["title"] = config.Title
 	params["description"] = config.Description
 	params["payload"] = config.Payload
-	params["provider_token"] = config.ProviderToken
+	params.AddNonEmpty("provider_token", config.ProviderToken)
 	params["currency"] = config.Currency
-	if err = params.AddInterface("prices", config.Prices); err != nil {
+	if err = params.AddAny("prices", config.Prices); err != nil {
 		return params, err
 	}
 
 	params.AddNonZero("max_tip_amount", config.MaxTipAmount)
-	err = params.AddInterface("suggested_tip_amounts", config.SuggestedTipAmounts)
+	err = params.AddAny("suggested_tip_amounts", config.SuggestedTipAmounts)
 	params.AddNonEmpty("start_parameter", config.StartParameter)
 	if len(config.ProviderData) > 0 {
 		params["provider_data"] = string(config.ProviderData)
@@ -1916,8 +1926,8 @@ type InvoiceLinkConfig struct {
 	Title                     string         // required
 	Description               string         // required
 	Payload                   string         // required
-	ProviderToken             string         // required
-	Currency                  string         // required
+	ProviderToken             string         // omit for payments in Telegram Stars
+	Currency                  string         // required ("XTR" for Telegram Stars)
 	Prices                    []LabeledPrice // required
 	MaxTipAmount              int
 	SuggestedTipAmounts       []int
@@ -1941,14 +1951,14 @@ func (config InvoiceLinkConfig) params() (Params, error) {
 	params["title"] = config.Title
 	params["description"] = config.Description
 	params["payload"] = config.Payload
-	params["provider_token"] = config.ProviderToken
+	params.AddNonEmpty("provider_token", config.ProviderToken)
 	params["currency"] = config.Currency
-	if err := params.AddInterface("prices", config.Prices); err != nil {
+	if err := params.AddAny("prices", config.Prices); err != nil {
 		return params, err
 	}
 
 	params.AddNonZero("max_tip_amount", config.MaxTipAmount)
-	if err := params.AddInterface("suggested_tip_amounts", config.SuggestedTipAmounts); err != nil {
+	if err := params.AddAny("suggested_tip_amounts", config.SuggestedTipAmounts); err != nil {
 		return params, err
 	}
 	if len(config.ProviderData) > 0 {
@@ -1971,6 +1981,25 @@ func (config InvoiceLinkConfig) params() (Params, error) {
 
 func (config InvoiceLinkConfig) method() string {
 	return "createInvoiceLink"
+}
+
+// RefundStarPaymentConfig refunds a successful payment in Telegram Stars.
+type RefundStarPaymentConfig struct {
+	UserID                  int64
+	TelegramPaymentChargeID string
+}
+
+func (config RefundStarPaymentConfig) method() string {
+	return "refundStarPayment"
+}
+
+func (config RefundStarPaymentConfig) params() (Params, error) {
+	params := make(Params)
+
+	params.AddNonZero64("user_id", config.UserID)
+	params["telegram_payment_charge_id"] = config.TelegramPaymentChargeID
+
+	return params, nil
 }
 
 // ShippingConfig contains information for answerShippingQuery request.
@@ -3057,12 +3086,15 @@ func (config DeleteChatStickerSetConfig) params() (Params, error) {
 //
 // Media consist of InputMedia items (InputMediaPhoto, InputMediaVideo).
 type MediaGroupConfig struct {
-	ChatID          int64
-	ChannelUsername string
-	MessageThreadID int
+	ChatID               int64
+	ChannelUsername      string
+	BusinessConnectionID string
+	MessageThreadID      int
+	MessageEffectID      string
 
 	Media               []interface{}
 	DisableNotification bool
+	ProtectContent      bool
 	ReplyParameters     *ReplyParameters
 }
 
@@ -3076,8 +3108,11 @@ func (config MediaGroupConfig) params() (Params, error) {
 	if err := params.AddFirstValid("chat_id", config.ChatID, config.ChannelUsername); err != nil {
 		return params, err
 	}
+	params.AddNonEmpty("business_connection_id", config.BusinessConnectionID)
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
+	params.AddNonEmpty("message_effect_id", config.MessageEffectID)
 	params.AddBool("disable_notification", config.DisableNotification)
+	params.AddBool("protect_content", config.ProtectContent)
 	if err := params.AddAny("reply_parameters", config.ReplyParameters); err != nil {
 		return params, err
 	}
