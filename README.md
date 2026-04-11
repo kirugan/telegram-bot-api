@@ -54,7 +54,9 @@ func main() {
 			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-			msg.ReplyToMessageID = update.Message.MessageID
+			msg.ReplyParameters = &tgbotapi.ReplyParameters{
+				MessageID: update.Message.MessageID,
+			}
 
 			bot.Send(msg)
 		}
@@ -85,7 +87,7 @@ func main() {
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	wh, _ := tgbotapi.NewWebhookWithCert("https://www.example.com:8443/"+bot.Token, "cert.pem")
+	wh, _ := tgbotapi.NewWebhookWithCert("https://www.example.com:8443/"+bot.Token, tgbotapi.FilePath("cert.pem"))
 
 	_, err = bot.Request(wh)
 	if err != nil {

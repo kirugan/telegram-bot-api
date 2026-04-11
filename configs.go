@@ -1050,7 +1050,7 @@ func (config SetGameScoreConfig) params() (Params, error) {
 	params := make(Params)
 
 	params.AddNonZero64("user_id", config.UserID)
-	params.AddNonZero("scrore", config.Score)
+	params.AddNonZero("score", config.Score)
 	params.AddBool("disable_edit_message", config.DisableEditMessage)
 
 	if config.InlineMessageID != "" {
@@ -1365,7 +1365,10 @@ func (config InlineConfig) params() (Params, error) {
 	params := make(Params)
 
 	params["inline_query_id"] = config.InlineQueryID
-	params.AddNonZero("cache_time", config.CacheTime)
+	// answerInlineQuery defaults cache_time to 300 seconds server-side, so
+	// we must serialize the zero value explicitly when the caller wants
+	// to disable caching.
+	params["cache_time"] = strconv.Itoa(config.CacheTime)
 	params.AddBool("is_personal", config.IsPersonal)
 	params.AddNonEmpty("next_offset", config.NextOffset)
 	if err := params.AddAny("button", config.Button); err != nil {

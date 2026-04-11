@@ -3,6 +3,7 @@
 package tgbotapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,7 +30,8 @@ type BotAPI struct {
 	Client          HTTPClient `json:"-"`
 	shutdownChannel chan interface{}
 
-	apiEndpoint string
+	apiEndpoint  string
+	fileEndpoint string
 }
 
 // NewBotAPI creates a new BotAPI instance.
@@ -58,7 +60,8 @@ func NewBotAPIWithClient(token, apiEndpoint string, client HTTPClient) (*BotAPI,
 		Buffer:          100,
 		shutdownChannel: make(chan interface{}),
 
-		apiEndpoint: apiEndpoint,
+		apiEndpoint:  apiEndpoint,
+		fileEndpoint: FileEndpoint,
 	}
 
 	self, err := bot.GetMe()
@@ -74,6 +77,23 @@ func NewBotAPIWithClient(token, apiEndpoint string, client HTTPClient) (*BotAPI,
 // SetAPIEndpoint changes the Telegram Bot API endpoint used by the instance.
 func (bot *BotAPI) SetAPIEndpoint(apiEndpoint string) {
 	bot.apiEndpoint = apiEndpoint
+}
+
+// SetFileEndpoint changes the file download endpoint used by the instance.
+// The value must be a format string with two %s placeholders for token and
+// file path, matching the default FileEndpoint constant.
+func (bot *BotAPI) SetFileEndpoint(fileEndpoint string) {
+	bot.fileEndpoint = fileEndpoint
+}
+
+// FileLink returns the full download URL for the given File, using the
+// file endpoint configured on this BotAPI instance.
+func (bot *BotAPI) FileLink(f File) string {
+	endpoint := bot.fileEndpoint
+	if endpoint == "" {
+		endpoint = FileEndpoint
+	}
+	return fmt.Sprintf(endpoint, bot.Token, f.FilePath)
 }
 
 func buildParams(in Params) url.Values {
@@ -341,10 +361,21 @@ func (bot *BotAPI) Request(c Chattable) (*APIResponse, error) {
 
 // Send will send a Chattable item to Telegram and provides the
 // returned Message.
+//
+// Some Bot API methods (banChatMember, setChatTitle, sendChatAction,
+// etc.) return a bare `true` on success rather than a Message. Send
+// tolerates that shape and returns a zero Message with nil error, so
+// callers that reach for Send by reflex don't get a confusing JSON
+// unmarshal error. Prefer Request for methods whose documented return
+// type is not a Message.
 func (bot *BotAPI) Send(c Chattable) (Message, error) {
 	resp, err := bot.Request(c)
 	if err != nil {
 		return Message{}, err
+	}
+
+	if len(resp.Result) == 0 || bytes.Equal(resp.Result, []byte("true")) {
+		return Message{}, nil
 	}
 
 	var message Message
@@ -445,7 +476,11 @@ func (bot *BotAPI) GetUpdatesChan(config UpdateConfig) UpdatesChannel {
 
 			updates, err := bot.GetUpdates(config)
 			if err != nil {
-				log.Println(err)
+				// Network errors from http.Post embed the full request URL,
+				// which in our case contains bot.Token. Strip it before
+				// logging so the token can't leak to logs.
+				redacted := strings.ReplaceAll(err.Error(), bot.Token, "<token>")
+				log.Println(redacted)
 				log.Println("Failed to get updates, retrying in 3 seconds...")
 				time.Sleep(time.Second * 3)
 
