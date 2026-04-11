@@ -4181,6 +4181,81 @@ func (config EditStoryConfig) files() []RequestFile {
 	return prepareInputStoryContentForFiles(config.Content)
 }
 
+// SendChecklistConfig sends a checklist message on behalf of a connected
+// business account.
+type SendChecklistConfig struct {
+	BusinessConnectionID string
+	ChatID               int64
+	Checklist            InputChecklist
+	DisableNotification  bool
+	ProtectContent       bool
+	MessageEffectID      string
+	ReplyParameters      *ReplyParameters
+	ReplyMarkup          interface{}
+}
+
+func (SendChecklistConfig) method() string {
+	return "sendChecklist"
+}
+
+func (config SendChecklistConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonZero64("chat_id", config.ChatID)
+	params.AddBool("disable_notification", config.DisableNotification)
+	params.AddBool("protect_content", config.ProtectContent)
+	params.AddNonEmpty("message_effect_id", config.MessageEffectID)
+	if err := params.AddAny("checklist", config.Checklist); err != nil {
+		return params, err
+	}
+	if err := params.AddAny("reply_parameters", config.ReplyParameters); err != nil {
+		return params, err
+	}
+	err := params.AddAny("reply_markup", config.ReplyMarkup)
+
+	return params, err
+}
+
+// EditMessageChecklistConfig edits a checklist previously sent by the bot.
+type EditMessageChecklistConfig struct {
+	BusinessConnectionID string
+	ChatID               int64
+	MessageID            int
+	Checklist            InputChecklist
+	ReplyMarkup          *InlineKeyboardMarkup
+}
+
+func (EditMessageChecklistConfig) method() string {
+	return "editMessageChecklist"
+}
+
+func (config EditMessageChecklistConfig) params() (Params, error) {
+	params := make(Params)
+
+	params["business_connection_id"] = config.BusinessConnectionID
+	params.AddNonZero64("chat_id", config.ChatID)
+	params.AddNonZero("message_id", config.MessageID)
+	if err := params.AddAny("checklist", config.Checklist); err != nil {
+		return params, err
+	}
+	err := params.AddAny("reply_markup", config.ReplyMarkup)
+
+	return params, err
+}
+
+// GetMyStarBalanceConfig returns the current Telegram Stars balance of the
+// bot.
+type GetMyStarBalanceConfig struct{}
+
+func (GetMyStarBalanceConfig) method() string {
+	return "getMyStarBalance"
+}
+
+func (GetMyStarBalanceConfig) params() (Params, error) {
+	return make(Params), nil
+}
+
 // DeleteStoryConfig deletes a story previously posted by the bot on behalf
 // of a managed business account.
 type DeleteStoryConfig struct {

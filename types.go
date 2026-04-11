@@ -657,6 +657,11 @@ type Message struct {
 	//
 	// optional
 	ReplyToStory *Story `json:"reply_to_story,omitempty"`
+	// ReplyToChecklistTaskID is the identifier of the specific checklist
+	// task that is being replied to.
+	//
+	// optional
+	ReplyToChecklistTaskID int `json:"reply_to_checklist_task_id,omitempty"`
 	// ViaBot through which the message was sent;
 	//
 	// optional
@@ -956,6 +961,26 @@ type Message struct {
 	//
 	// optional
 	PaidMessagePriceChanged *PaidMessagePriceChanged `json:"paid_message_price_changed,omitempty"`
+	// DirectMessagePriceChanged is a service message about a change in the
+	// pricing of direct messages sent to a channel chat.
+	//
+	// optional
+	DirectMessagePriceChanged *DirectMessagePriceChanged `json:"direct_message_price_changed,omitempty"`
+	// Checklist is the checklist that was sent, if the message contains a
+	// checklist.
+	//
+	// optional
+	Checklist *Checklist `json:"checklist,omitempty"`
+	// ChecklistTasksDone is a service message about tasks in a checklist
+	// being marked as done or not done.
+	//
+	// optional
+	ChecklistTasksDone *ChecklistTasksDone `json:"checklist_tasks_done,omitempty"`
+	// ChecklistTasksAdded is a service message about tasks added to a
+	// checklist.
+	//
+	// optional
+	ChecklistTasksAdded *ChecklistTasksAdded `json:"checklist_tasks_added,omitempty"`
 	// PaidStarCount is the number of Telegram Stars that were paid by the
 	// sender of the message to send it.
 	//
@@ -3136,6 +3161,10 @@ type Gift struct {
 	//
 	// optional
 	RemainingCount int `json:"remaining_count,omitempty"`
+	// PublisherChat is the chat that published the gift.
+	//
+	// optional
+	PublisherChat *Chat `json:"publisher_chat,omitempty"`
 }
 
 // Gifts represents a list of gifts.
@@ -3205,6 +3234,10 @@ type UniqueGift struct {
 	Symbol UniqueGiftSymbol `json:"symbol"`
 	// Backdrop of the unique gift.
 	Backdrop UniqueGiftBackdrop `json:"backdrop"`
+	// PublisherChat is the chat that published the underlying regular gift.
+	//
+	// optional
+	PublisherChat *Chat `json:"publisher_chat,omitempty"`
 }
 
 // GiftInfo describes a service message about a regular gift that was sent
@@ -3251,6 +3284,7 @@ type GiftInfo struct {
 const (
 	UniqueGiftOriginUpgrade  = "upgrade"
 	UniqueGiftOriginTransfer = "transfer"
+	UniqueGiftOriginResale   = "resale"
 )
 
 // UniqueGiftInfo describes a service message about a unique gift that was
@@ -3258,8 +3292,13 @@ const (
 type UniqueGiftInfo struct {
 	// Gift is the information about the unique gift.
 	Gift UniqueGift `json:"gift"`
-	// Origin of the gift. Currently, either "upgrade" or "transfer".
+	// Origin of the gift. One of "upgrade", "transfer", "resale".
 	Origin string `json:"origin"`
+	// LastResaleStarCount is the number of Telegram Stars the gift was
+	// resold for; for gifts bought on a resale market only.
+	//
+	// optional
+	LastResaleStarCount int `json:"last_resale_star_count,omitempty"`
 	// OwnedGiftID is the unique identifier of the received gift for the
 	// bot; only present for gifts received on behalf of business accounts.
 	//
@@ -3355,6 +3394,12 @@ type OwnedGift struct {
 	//
 	// optional
 	TransferStarCount int `json:"transfer_star_count,omitempty"`
+	// NextTransferDate is the point in time (Unix timestamp) when the gift
+	// can be transferred. If it is in the past, then the gift can be
+	// transferred now. Unique only.
+	//
+	// optional
+	NextTransferDate int `json:"next_transfer_date,omitempty"`
 }
 
 // OwnedGifts contains the list of gifts received and owned by a user or chat.
@@ -3575,6 +3620,139 @@ type PaidMessagePriceChanged struct {
 	// be paid by non-administrator users of the supergroup chat for each
 	// sent message.
 	PaidMessageStarCount int `json:"paid_message_star_count"`
+}
+
+// DirectMessagePriceChanged describes a service message about a change in
+// the pricing of direct messages sent to a channel chat.
+type DirectMessagePriceChanged struct {
+	// AreDirectMessagesEnabled is true, if direct messages are enabled
+	// for the channel chat.
+	AreDirectMessagesEnabled bool `json:"are_direct_messages_enabled"`
+	// DirectMessageStarCount is the new number of Telegram Stars that
+	// must be paid to send each direct message.
+	//
+	// optional
+	DirectMessageStarCount int `json:"direct_message_star_count,omitempty"`
+}
+
+// ChecklistTask describes a task in a checklist.
+type ChecklistTask struct {
+	// ID is the unique identifier of the task.
+	ID int `json:"id"`
+	// Text is the text of the task.
+	Text string `json:"text"`
+	// TextEntities are the special entities that appear in the task text.
+	//
+	// optional
+	TextEntities []MessageEntity `json:"text_entities,omitempty"`
+	// CompletedByUser is the user that completed the task; for tasks that
+	// were completed.
+	//
+	// optional
+	CompletedByUser *User `json:"completed_by_user,omitempty"`
+	// CompletionDate is the point in time (Unix timestamp) when the task
+	// was completed; 0 for tasks that weren't completed.
+	//
+	// optional
+	CompletionDate int `json:"completion_date,omitempty"`
+}
+
+// Checklist describes a checklist on a message.
+type Checklist struct {
+	// Title is the title of the checklist.
+	Title string `json:"title"`
+	// TitleEntities are the special entities that appear in the title.
+	//
+	// optional
+	TitleEntities []MessageEntity `json:"title_entities,omitempty"`
+	// Tasks is the list of tasks in the checklist.
+	Tasks []ChecklistTask `json:"tasks"`
+	// OthersCanAddTasks is true, if users other than the creator can add
+	// tasks to the checklist.
+	//
+	// optional
+	OthersCanAddTasks bool `json:"others_can_add_tasks,omitempty"`
+	// OthersCanMarkTasksAsDone is true, if users other than the creator
+	// can mark tasks as done or not done.
+	//
+	// optional
+	OthersCanMarkTasksAsDone bool `json:"others_can_mark_tasks_as_done,omitempty"`
+}
+
+// InputChecklistTask describes a task to be added to a checklist.
+type InputChecklistTask struct {
+	// ID is the unique identifier of the task; must be positive and unique
+	// among all task identifiers in the checklist.
+	ID int `json:"id"`
+	// Text is the text of the task.
+	Text string `json:"text"`
+	// ParseMode is the mode for parsing entities in the text.
+	//
+	// optional
+	ParseMode string `json:"parse_mode,omitempty"`
+	// TextEntities are the special entities that appear in the text.
+	//
+	// optional
+	TextEntities []MessageEntity `json:"text_entities,omitempty"`
+}
+
+// InputChecklist describes a checklist to create.
+type InputChecklist struct {
+	// Title is the title of the checklist.
+	Title string `json:"title"`
+	// ParseMode is the mode for parsing entities in the title.
+	//
+	// optional
+	ParseMode string `json:"parse_mode,omitempty"`
+	// TitleEntities are the special entities that appear in the title.
+	//
+	// optional
+	TitleEntities []MessageEntity `json:"title_entities,omitempty"`
+	// Tasks is the list of 1-30 tasks in the checklist.
+	Tasks []InputChecklistTask `json:"tasks"`
+	// OthersCanAddTasks pass true if users other than the creator can add
+	// tasks to the checklist.
+	//
+	// optional
+	OthersCanAddTasks bool `json:"others_can_add_tasks,omitempty"`
+	// OthersCanMarkTasksAsDone pass true if users other than the creator
+	// can mark tasks as done or not done.
+	//
+	// optional
+	OthersCanMarkTasksAsDone bool `json:"others_can_mark_tasks_as_done,omitempty"`
+}
+
+// ChecklistTasksDone describes a service message about tasks in a checklist
+// being marked as done or not done.
+type ChecklistTasksDone struct {
+	// ChecklistMessage is the message containing the checklist whose tasks
+	// were marked as done or not done. Note that the Message object in this
+	// field will not contain the ReplyToMessage field even if it itself is
+	// a reply.
+	//
+	// optional
+	ChecklistMessage *Message `json:"checklist_message,omitempty"`
+	// MarkedAsDoneTaskIDs are the IDs of tasks that were marked as done.
+	//
+	// optional
+	MarkedAsDoneTaskIDs []int `json:"marked_as_done_task_ids,omitempty"`
+	// MarkedAsNotDoneTaskIDs are the IDs of tasks that were marked as not
+	// done.
+	//
+	// optional
+	MarkedAsNotDoneTaskIDs []int `json:"marked_as_not_done_task_ids,omitempty"`
+}
+
+// ChecklistTasksAdded describes a service message about tasks added to a
+// checklist.
+type ChecklistTasksAdded struct {
+	// ChecklistMessage is the message containing the checklist to which
+	// the tasks were added.
+	//
+	// optional
+	ChecklistMessage *Message `json:"checklist_message,omitempty"`
+	// Tasks is the list of tasks added to the checklist.
+	Tasks []ChecklistTask `json:"tasks"`
 }
 
 // InputPaidMedia describes the paid media to be sent. Flat polymorphic by
@@ -4175,6 +4353,11 @@ type ReplyParameters struct {
 	//
 	// optional
 	QuotePosition int `json:"quote_position,omitempty"`
+	// ChecklistTaskID is the identifier of the specific checklist task to
+	// reply to. Required if replying to a task in a checklist.
+	//
+	// optional
+	ChecklistTaskID int `json:"checklist_task_id,omitempty"`
 }
 
 // ChatLocation represents a location to which a chat is connected.

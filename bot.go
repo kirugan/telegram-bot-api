@@ -777,6 +777,19 @@ func (bot *BotAPI) GetStarTransactions(config GetStarTransactionsConfig) (StarTr
 	return st, err
 }
 
+// GetMyStarBalance returns the current Telegram Stars balance of the bot.
+func (bot *BotAPI) GetMyStarBalance() (StarAmount, error) {
+	resp, err := bot.Request(GetMyStarBalanceConfig{})
+	if err != nil {
+		return StarAmount{}, err
+	}
+
+	var amount StarAmount
+	err = json.Unmarshal(resp.Result, &amount)
+
+	return amount, err
+}
+
 // GetBusinessAccountStarBalance returns the amount of Telegram Stars owned
 // by a managed business account.
 func (bot *BotAPI) GetBusinessAccountStarBalance(config GetBusinessAccountStarBalanceConfig) (StarAmount, error) {
