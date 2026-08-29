@@ -2,8 +2,10 @@ package tgbotapi
 
 import (
 	"encoding/json"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestInputRichBlockCaptionRouting verifies that the shared "caption" wire
@@ -11,26 +13,17 @@ import (
 // block, mirroring RichBlock.
 func TestInputRichBlockCaptionRouting(t *testing.T) {
 	var table InputRichBlock
-	if err := json.Unmarshal([]byte(`{"type":"table","cells":[],"caption":"a table"}`), &table); err != nil {
-		t.Fatalf("table unmarshal: %v", err)
-	}
-	if table.TableCaption == nil || table.TableCaption.PlainText != "a table" {
-		t.Fatalf("table caption not routed to TableCaption: %+v", table)
-	}
-	if table.Caption != nil {
-		t.Fatalf("table caption also set Caption: %+v", table.Caption)
-	}
+	require.NoError(t, json.Unmarshal([]byte(`{"type":"table","cells":[],"caption":"a table"}`), &table))
+	require.NotNil(t, table.TableCaption)
+	assert.Equal(t, "a table", table.TableCaption.PlainText)
+	assert.Nil(t, table.Caption)
 
 	var photo InputRichBlock
-	if err := json.Unmarshal([]byte(`{"type":"photo","caption":{"text":"a photo"}}`), &photo); err != nil {
-		t.Fatalf("photo unmarshal: %v", err)
-	}
-	if photo.Caption == nil || !photo.Caption.Text.IsPlain || photo.Caption.Text.PlainText != "a photo" {
-		t.Fatalf("photo caption not routed to Caption: %+v", photo)
-	}
-	if photo.TableCaption != nil {
-		t.Fatalf("photo caption also set TableCaption: %+v", photo.TableCaption)
-	}
+	require.NoError(t, json.Unmarshal([]byte(`{"type":"photo","caption":{"text":"a photo"}}`), &photo))
+	require.NotNil(t, photo.Caption)
+	assert.True(t, photo.Caption.Text.IsPlain)
+	assert.Equal(t, "a photo", photo.Caption.Text.PlainText)
+	assert.Nil(t, photo.TableCaption)
 }
 
 // TestInputRichBlockRoundTrip verifies that the block variants survive a
@@ -53,20 +46,12 @@ func TestInputRichBlockRoundTrip(t *testing.T) {
 
 	for _, in := range cases {
 		var first InputRichBlock
-		if err := json.Unmarshal([]byte(in), &first); err != nil {
-			t.Fatalf("unmarshal %s: %v", in, err)
-		}
+		require.NoError(t, json.Unmarshal([]byte(in), &first), "unmarshal %s", in)
 		out, err := json.Marshal(first)
-		if err != nil {
-			t.Fatalf("marshal %s: %v", in, err)
-		}
+		require.NoError(t, err, "marshal %s", in)
 		var second InputRichBlock
-		if err := json.Unmarshal(out, &second); err != nil {
-			t.Fatalf("re-unmarshal %s: %v", out, err)
-		}
-		if !reflect.DeepEqual(first, second) {
-			t.Errorf("round trip mismatch:\n  in:  %s\n  out: %s", in, out)
-		}
+		require.NoError(t, json.Unmarshal(out, &second), "re-unmarshal %s", out)
+		assert.Equal(t, first, second, "round trip mismatch for %s", in)
 	}
 }
 
@@ -82,24 +67,14 @@ func TestInputRichBlockMediaMarshal(t *testing.T) {
 		Caption: &RichBlockCaption{Text: RichText{IsPlain: true, PlainText: "pic"}},
 	}
 	out, err := json.Marshal(block)
-	if err != nil {
-		t.Fatalf("marshal photo block: %v", err)
-	}
-	want := `{"type":"photo","photo":{"type":"photo","media":"file_id"},"caption":{"text":"pic"}}`
-	if string(out) != want {
-		t.Errorf("photo block encoding:\n  got:  %s\n  want: %s", out, want)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, `{"type":"photo","photo":{"type":"photo","media":"file_id"},"caption":{"text":"pic"}}`, string(out))
 
 	voice := NewInputMediaVoiceNote(FileID("file_id"))
 	voice.Duration = 5
 	out, err = json.Marshal(InputRichBlock{Type: RichBlockTypeVoiceNote, VoiceNote: &voice})
-	if err != nil {
-		t.Fatalf("marshal voice note block: %v", err)
-	}
-	want = `{"type":"voice_note","voice_note":{"type":"voice_note","media":"file_id","duration":5}}`
-	if string(out) != want {
-		t.Errorf("voice note block encoding:\n  got:  %s\n  want: %s", out, want)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, `{"type":"voice_note","voice_note":{"type":"voice_note","media":"file_id","duration":5}}`, string(out))
 }
 
 // TestInputRichMessageBlocks verifies that a block-formatted rich message and
@@ -111,12 +86,8 @@ func TestInputRichMessageBlocks(t *testing.T) {
 		},
 	}
 	out, err := json.Marshal(msg)
-	if err != nil {
-		t.Fatalf("marshal blocks: %v", err)
-	}
-	if got, want := string(out), `{"blocks":[{"type":"paragraph","text":"hi"}]}`; got != want {
-		t.Errorf("blocks encoding:\n  got:  %s\n  want: %s", got, want)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, `{"blocks":[{"type":"paragraph","text":"hi"}]}`, string(out))
 
 	withMedia := InputRichMessage{
 		Markdown: "![pic](tg://photo?id=p1)",
@@ -125,13 +96,8 @@ func TestInputRichMessageBlocks(t *testing.T) {
 		},
 	}
 	out, err = json.Marshal(withMedia)
-	if err != nil {
-		t.Fatalf("marshal media: %v", err)
-	}
-	want := `{"markdown":"![pic](tg://photo?id=p1)","media":[{"id":"p1","media":{"type":"photo","media":"file_id"}}]}`
-	if got := string(out); got != want {
-		t.Errorf("media encoding:\n  got:  %s\n  want: %s", got, want)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, `{"markdown":"![pic](tg://photo?id=p1)","media":[{"id":"p1","media":{"type":"photo","media":"file_id"}}]}`, string(out))
 }
 
 // TestEphemeralSendParams verifies that the ephemeral parameters are only
@@ -139,25 +105,17 @@ func TestInputRichMessageBlocks(t *testing.T) {
 func TestEphemeralSendParams(t *testing.T) {
 	plain := NewMessage(12345, "hello")
 	params, err := plain.params()
-	if err != nil {
-		t.Fatalf("plain params: %v", err)
-	}
-	if _, ok := params["ephemeral_message_parameters"]; ok {
-		t.Error("ephemeral_message_parameters emitted for a non-ephemeral message")
-	}
+	require.NoError(t, err)
+	assert.NotContains(t, params, "ephemeral_message_parameters")
 
 	ephemeral := NewMessage(12345, "hello")
 	ephemeral.ReceiverUserID = 777
 	ephemeral.CallbackQueryID = "cbq"
 	ephemeral.ReplaceCallbackQueryMessage = true
 	params, err = ephemeral.params()
-	if err != nil {
-		t.Fatalf("ephemeral params: %v", err)
-	}
+	require.NoError(t, err)
 	want := `{"receiver_user_id":777,"callback_query_id":"cbq","replace_callback_query_message":true}`
-	if params["ephemeral_message_parameters"] != want {
-		t.Errorf("ephemeral_message_parameters = %q, want %q", params["ephemeral_message_parameters"], want)
-	}
+	assert.Equal(t, want, params["ephemeral_message_parameters"])
 }
 
 // TestEphemeralEditConfigs verifies the params and methods of the ephemeral
@@ -165,46 +123,30 @@ func TestEphemeralSendParams(t *testing.T) {
 func TestEphemeralEditConfigs(t *testing.T) {
 	edit := NewEditEphemeralMessageText(12345, 777, 42, "updated")
 	params, err := edit.params()
-	if err != nil {
-		t.Fatalf("edit params: %v", err)
-	}
+	require.NoError(t, err)
 	for key, want := range map[string]string{
 		"chat_id":              "12345",
 		"receiver_user_id":     "777",
 		"ephemeral_message_id": "42",
 		"text":                 "updated",
 	} {
-		if params[key] != want {
-			t.Errorf("%s = %q, want %q", key, params[key], want)
-		}
+		assert.Equal(t, want, params[key], key)
 	}
-	if edit.method() != "editEphemeralMessageText" {
-		t.Errorf("method = %q", edit.method())
-	}
+	assert.Equal(t, "editEphemeralMessageText", edit.method())
 
 	del := NewDeleteEphemeralMessage(12345, 777, 42)
 	params, err = del.params()
-	if err != nil {
-		t.Fatalf("delete params: %v", err)
-	}
-	if _, ok := params["reply_markup"]; ok {
-		t.Error("deleteEphemeralMessage must not send reply_markup")
-	}
-	if del.method() != "deleteEphemeralMessage" {
-		t.Errorf("method = %q", del.method())
-	}
+	require.NoError(t, err)
+	assert.NotContains(t, params, "reply_markup", "deleteEphemeralMessage must not send reply_markup")
+	assert.Equal(t, "deleteEphemeralMessage", del.method())
 }
 
 // TestReplyParametersEphemeral verifies that ReplyParameters can address an
 // ephemeral message and that message_id is omitted when unset.
 func TestReplyParametersEphemeral(t *testing.T) {
 	out, err := json.Marshal(ReplyParameters{EphemeralMessageID: 42})
-	if err != nil {
-		t.Fatalf("marshal: %v", err)
-	}
-	if got, want := string(out), `{"ephemeral_message_id":42}`; got != want {
-		t.Errorf("encoding:\n  got:  %s\n  want: %s", got, want)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, `{"ephemeral_message_id":42}`, string(out))
 }
 
 // TestPrepareInputMediaAnimation verifies that InputMediaAnimation is handled
@@ -212,32 +154,21 @@ func TestReplyParametersEphemeral(t *testing.T) {
 // switches, so animations were silently dropped from the request.
 func TestPrepareInputMediaAnimation(t *testing.T) {
 	byID := NewInputMediaAnimation(FileID("file_id"))
-	if param := prepareInputMediaParam(byID, 0); param == nil {
-		t.Fatal("prepareInputMediaParam dropped InputMediaAnimation")
-	}
+	require.NotNil(t, prepareInputMediaParam(byID, 0), "prepareInputMediaParam dropped InputMediaAnimation")
 
 	upload := NewInputMediaAnimation(FilePath("/tmp/anim.gif"))
 	upload.Thumbnail = FilePath("/tmp/thumb.jpg")
 
 	param := prepareInputMediaParam(upload, 3)
 	animation, ok := param.(InputMediaAnimation)
-	if !ok {
-		t.Fatalf("prepareInputMediaParam returned %T, want InputMediaAnimation", param)
-	}
-	if got := animation.Media.SendData(); got != "attach://file-3" {
-		t.Errorf("media = %q, want attach://file-3", got)
-	}
-	if got := animation.Thumbnail.SendData(); got != "attach://file-3-thumbnail" {
-		t.Errorf("thumbnail = %q, want attach://file-3-thumbnail", got)
-	}
+	require.True(t, ok, "prepareInputMediaParam returned %T, want InputMediaAnimation", param)
+	assert.Equal(t, "attach://file-3", animation.Media.SendData())
+	assert.Equal(t, "attach://file-3-thumbnail", animation.Thumbnail.SendData())
 
 	files := prepareInputMediaFile(upload, 3)
-	if len(files) != 2 {
-		t.Fatalf("prepareInputMediaFile returned %d files, want 2", len(files))
-	}
-	if files[0].Name != "file-3" || files[1].Name != "file-3-thumbnail" {
-		t.Errorf("file names = %q, %q", files[0].Name, files[1].Name)
-	}
+	require.Len(t, files, 2)
+	assert.Equal(t, "file-3", files[0].Name)
+	assert.Equal(t, "file-3-thumbnail", files[1].Name)
 }
 
 // TestUpdateSentFromSubscription verifies that SentFrom resolves the user of a
@@ -250,12 +181,8 @@ func TestUpdateSentFromSubscription(t *testing.T) {
 		},
 	}
 	from := update.SentFrom()
-	if from == nil {
-		t.Fatal("SentFrom returned nil for a subscription update")
-	}
-	if from.ID != 5 {
-		t.Errorf("SentFrom().ID = %d, want 5", from.ID)
-	}
+	require.NotNil(t, from, "SentFrom returned nil for a subscription update")
+	assert.Equal(t, int64(5), from.ID)
 }
 
 // TestCommunityServiceMessages verifies decoding of the community service
@@ -264,26 +191,16 @@ func TestCommunityServiceMessages(t *testing.T) {
 	var msg Message
 	raw := `{"message_id":1,"date":1,"chat":{"id":1,"type":"supergroup"},` +
 		`"community_chat_added":{"community":{"id":99,"name":"Gophers"}}}`
-	if err := json.Unmarshal([]byte(raw), &msg); err != nil {
-		t.Fatalf("unmarshal message: %v", err)
-	}
-	if msg.CommunityChatAdded == nil {
-		t.Fatal("community_chat_added not decoded")
-	}
-	if msg.CommunityChatAdded.Community.ID != 99 || msg.CommunityChatAdded.Community.Name != "Gophers" {
-		t.Errorf("community not decoded: %+v", msg.CommunityChatAdded.Community)
-	}
+	require.NoError(t, json.Unmarshal([]byte(raw), &msg))
+	require.NotNil(t, msg.CommunityChatAdded, "community_chat_added not decoded")
+	assert.Equal(t, int64(99), msg.CommunityChatAdded.Community.ID)
+	assert.Equal(t, "Gophers", msg.CommunityChatAdded.Community.Name)
 
 	var update Update
 	rawUpdate := `{"update_id":1,"subscription":{"user":{"id":5,"is_bot":false,"first_name":"A"},` +
 		`"invoice_payload":"p","state":"active"}}`
-	if err := json.Unmarshal([]byte(rawUpdate), &update); err != nil {
-		t.Fatalf("unmarshal update: %v", err)
-	}
-	if update.Subscription == nil {
-		t.Fatal("subscription not decoded")
-	}
-	if update.Subscription.State != BotSubscriptionStateActive || update.Subscription.User.ID != 5 {
-		t.Errorf("subscription not decoded: %+v", update.Subscription)
-	}
+	require.NoError(t, json.Unmarshal([]byte(rawUpdate), &update))
+	require.NotNil(t, update.Subscription, "subscription not decoded")
+	assert.Equal(t, BotSubscriptionStateActive, update.Subscription.State)
+	assert.Equal(t, int64(5), update.Subscription.User.ID)
 }

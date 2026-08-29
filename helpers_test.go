@@ -2,163 +2,138 @@ package tgbotapi
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewWebhook(t *testing.T) {
 	result, err := NewWebhook("https://example.com/token")
 
-	if err != nil ||
-		result.URL.String() != "https://example.com/token" ||
-		result.Certificate != interface{}(nil) ||
-		result.MaxConnections != 0 ||
-		len(result.AllowedUpdates) != 0 {
-		t.Fail()
-	}
+	require.NoError(t, err)
+	assert.Equal(t, "https://example.com/token", result.URL.String())
+	assert.Nil(t, result.Certificate)
+	assert.Equal(t, 0, result.MaxConnections)
+	assert.Empty(t, result.AllowedUpdates)
 }
 
 func TestNewWebhookWithCert(t *testing.T) {
 	exampleFile := FileID("123")
 	result, err := NewWebhookWithCert("https://example.com/token", exampleFile)
 
-	if err != nil ||
-		result.URL.String() != "https://example.com/token" ||
-		result.Certificate != exampleFile ||
-		result.MaxConnections != 0 ||
-		len(result.AllowedUpdates) != 0 {
-		t.Fail()
-	}
+	require.NoError(t, err)
+	assert.Equal(t, "https://example.com/token", result.URL.String())
+	assert.Equal(t, RequestFileData(exampleFile), result.Certificate)
+	assert.Equal(t, 0, result.MaxConnections)
+	assert.Empty(t, result.AllowedUpdates)
 }
 
 func TestNewInlineQueryResultArticle(t *testing.T) {
 	result := NewInlineQueryResultArticle("id", "title", "message")
 
-	if result.Type != "article" ||
-		result.ID != "id" ||
-		result.Title != "title" ||
-		result.InputMessageContent.(InputTextMessageContent).Text != "message" {
-		t.Fail()
-	}
+	assert.Equal(t, "article", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "title", result.Title)
+	assert.Equal(t, "message", result.InputMessageContent.(InputTextMessageContent).Text)
 }
 
 func TestNewInlineQueryResultArticleMarkdown(t *testing.T) {
 	result := NewInlineQueryResultArticleMarkdown("id", "title", "*message*")
 
-	if result.Type != "article" ||
-		result.ID != "id" ||
-		result.Title != "title" ||
-		result.InputMessageContent.(InputTextMessageContent).Text != "*message*" ||
-		result.InputMessageContent.(InputTextMessageContent).ParseMode != "Markdown" {
-		t.Fail()
-	}
+	assert.Equal(t, "article", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "title", result.Title)
+	assert.Equal(t, "*message*", result.InputMessageContent.(InputTextMessageContent).Text)
+	assert.Equal(t, "Markdown", result.InputMessageContent.(InputTextMessageContent).ParseMode)
 }
 
 func TestNewInlineQueryResultArticleHTML(t *testing.T) {
 	result := NewInlineQueryResultArticleHTML("id", "title", "<b>message</b>")
 
-	if result.Type != "article" ||
-		result.ID != "id" ||
-		result.Title != "title" ||
-		result.InputMessageContent.(InputTextMessageContent).Text != "<b>message</b>" ||
-		result.InputMessageContent.(InputTextMessageContent).ParseMode != "HTML" {
-		t.Fail()
-	}
+	assert.Equal(t, "article", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "title", result.Title)
+	assert.Equal(t, "<b>message</b>", result.InputMessageContent.(InputTextMessageContent).Text)
+	assert.Equal(t, "HTML", result.InputMessageContent.(InputTextMessageContent).ParseMode)
 }
 
 func TestNewInlineQueryResultGIF(t *testing.T) {
 	result := NewInlineQueryResultGIF("id", "google.com")
 
-	if result.Type != "gif" ||
-		result.ID != "id" ||
-		result.URL != "google.com" {
-		t.Fail()
-	}
+	assert.Equal(t, "gif", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "google.com", result.URL)
 }
 
 func TestNewInlineQueryResultMPEG4GIF(t *testing.T) {
 	result := NewInlineQueryResultMPEG4GIF("id", "google.com")
 
-	if result.Type != "mpeg4_gif" ||
-		result.ID != "id" ||
-		result.URL != "google.com" {
-		t.Fail()
-	}
+	assert.Equal(t, "mpeg4_gif", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "google.com", result.URL)
 }
 
 func TestNewInlineQueryResultPhoto(t *testing.T) {
 	result := NewInlineQueryResultPhoto("id", "google.com")
 
-	if result.Type != "photo" ||
-		result.ID != "id" ||
-		result.URL != "google.com" {
-		t.Fail()
-	}
+	assert.Equal(t, "photo", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "google.com", result.URL)
 }
 
 func TestNewInlineQueryResultPhotoWithThumbnail(t *testing.T) {
 	result := NewInlineQueryResultPhotoWithThumbnail("id", "google.com", "thumbnail.com")
 
-	if result.Type != "photo" ||
-		result.ID != "id" ||
-		result.URL != "google.com" ||
-		result.ThumbnailURL != "thumbnail.com" {
-		t.Fail()
-	}
+	assert.Equal(t, "photo", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "google.com", result.URL)
+	assert.Equal(t, "thumbnail.com", result.ThumbnailURL)
 }
 
 func TestNewInlineQueryResultVideo(t *testing.T) {
 	result := NewInlineQueryResultVideo("id", "google.com")
 
-	if result.Type != "video" ||
-		result.ID != "id" ||
-		result.URL != "google.com" {
-		t.Fail()
-	}
+	assert.Equal(t, "video", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "google.com", result.URL)
 }
 
 func TestNewInlineQueryResultAudio(t *testing.T) {
 	result := NewInlineQueryResultAudio("id", "google.com", "title")
 
-	if result.Type != "audio" ||
-		result.ID != "id" ||
-		result.URL != "google.com" ||
-		result.Title != "title" {
-		t.Fail()
-	}
+	assert.Equal(t, "audio", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "google.com", result.URL)
+	assert.Equal(t, "title", result.Title)
 }
 
 func TestNewInlineQueryResultVoice(t *testing.T) {
 	result := NewInlineQueryResultVoice("id", "google.com", "title")
 
-	if result.Type != "voice" ||
-		result.ID != "id" ||
-		result.URL != "google.com" ||
-		result.Title != "title" {
-		t.Fail()
-	}
+	assert.Equal(t, "voice", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "google.com", result.URL)
+	assert.Equal(t, "title", result.Title)
 }
 
 func TestNewInlineQueryResultDocument(t *testing.T) {
 	result := NewInlineQueryResultDocument("id", "google.com", "title", "mime/type")
 
-	if result.Type != "document" ||
-		result.ID != "id" ||
-		result.URL != "google.com" ||
-		result.Title != "title" ||
-		result.MimeType != "mime/type" {
-		t.Fail()
-	}
+	assert.Equal(t, "document", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "google.com", result.URL)
+	assert.Equal(t, "title", result.Title)
+	assert.Equal(t, "mime/type", result.MimeType)
 }
 
 func TestNewInlineQueryResultLocation(t *testing.T) {
 	result := NewInlineQueryResultLocation("id", "name", 40, 50)
 
-	if result.Type != "location" ||
-		result.ID != "id" ||
-		result.Title != "name" ||
-		result.Latitude != 40 ||
-		result.Longitude != 50 {
-		t.Fail()
-	}
+	assert.Equal(t, "location", result.Type)
+	assert.Equal(t, "id", result.ID)
+	assert.Equal(t, "name", result.Title)
+	assert.Equal(t, float64(40), result.Latitude)
+	assert.Equal(t, float64(50), result.Longitude)
 }
 
 func TestNewInlineKeyboardButtonLoginURL(t *testing.T) {
@@ -169,33 +144,27 @@ func TestNewInlineKeyboardButtonLoginURL(t *testing.T) {
 		RequestWriteAccess: false,
 	})
 
-	if result.Text != "text" ||
-		result.LoginURL.URL != "url" ||
-		result.LoginURL.ForwardText != "ForwardText" ||
-		result.LoginURL.BotUsername != "username" ||
-		result.LoginURL.RequestWriteAccess != false {
-		t.Fail()
-	}
+	assert.Equal(t, "text", result.Text)
+	assert.Equal(t, "url", result.LoginURL.URL)
+	assert.Equal(t, "ForwardText", result.LoginURL.ForwardText)
+	assert.Equal(t, "username", result.LoginURL.BotUsername)
+	assert.False(t, result.LoginURL.RequestWriteAccess)
 }
 
 func TestNewEditMessageText(t *testing.T) {
 	edit := NewEditMessageText(ChatID, ReplyToMessageID, "new text")
 
-	if edit.Text != "new text" ||
-		edit.BaseEdit.ChatID != ChatID ||
-		edit.BaseEdit.MessageID != ReplyToMessageID {
-		t.Fail()
-	}
+	assert.Equal(t, "new text", edit.Text)
+	assert.Equal(t, int64(ChatID), edit.BaseEdit.ChatID)
+	assert.Equal(t, ReplyToMessageID, edit.BaseEdit.MessageID)
 }
 
 func TestNewEditMessageCaption(t *testing.T) {
 	edit := NewEditMessageCaption(ChatID, ReplyToMessageID, "new caption")
 
-	if edit.Caption != "new caption" ||
-		edit.BaseEdit.ChatID != ChatID ||
-		edit.BaseEdit.MessageID != ReplyToMessageID {
-		t.Fail()
-	}
+	assert.Equal(t, "new caption", edit.Caption)
+	assert.Equal(t, int64(ChatID), edit.BaseEdit.ChatID)
+	assert.Equal(t, ReplyToMessageID, edit.BaseEdit.MessageID)
 }
 
 func TestNewEditMessageReplyMarkup(t *testing.T) {
@@ -209,30 +178,23 @@ func TestNewEditMessageReplyMarkup(t *testing.T) {
 
 	edit := NewEditMessageReplyMarkup(ChatID, ReplyToMessageID, markup)
 
-	if edit.ReplyMarkup.InlineKeyboard[0][0].Text != "test" ||
-		edit.BaseEdit.ChatID != ChatID ||
-		edit.BaseEdit.MessageID != ReplyToMessageID {
-		t.Fail()
-	}
-
+	assert.Equal(t, "test", edit.ReplyMarkup.InlineKeyboard[0][0].Text)
+	assert.Equal(t, int64(ChatID), edit.BaseEdit.ChatID)
+	assert.Equal(t, ReplyToMessageID, edit.BaseEdit.MessageID)
 }
 
 func TestNewDice(t *testing.T) {
 	dice := NewDice(42)
 
-	if dice.ChatID != 42 ||
-		dice.Emoji != "" {
-		t.Fail()
-	}
+	assert.Equal(t, int64(42), dice.ChatID)
+	assert.Equal(t, "", dice.Emoji)
 }
 
 func TestNewDiceWithEmoji(t *testing.T) {
 	dice := NewDiceWithEmoji(42, "🏀")
 
-	if dice.ChatID != 42 ||
-		dice.Emoji != "🏀" {
-		t.Fail()
-	}
+	assert.Equal(t, int64(42), dice.ChatID)
+	assert.Equal(t, "🏀", dice.Emoji)
 }
 
 func TestValidateWebAppData(t *testing.T) {
@@ -240,23 +202,15 @@ func TestValidateWebAppData(t *testing.T) {
 		token := "5473903189:AAFnHnISQMP5UQQ5MEaoEWvxeiwNgz2CN2U"
 		initData := "query_id=AAG1bpMJAAAAALVukwmZ_H2t&user=%7B%22id%22%3A160657077%2C%22first_name%22%3A%22Yury%20R%22%2C%22last_name%22%3A%22%22%2C%22username%22%3A%22crashiura%22%2C%22language_code%22%3A%22en%22%7D&auth_date=1656804462&hash=8d6960760a573d3212deb05e20d1a34959c83d24c1bc44bb26dde49a42aa9b34"
 		result, err := ValidateWebAppData(token, initData)
-		if err != nil {
-			t.Fail()
-		}
-		if !result {
-			t.Fail()
-		}
+		require.NoError(t, err)
+		assert.True(t, result)
 	})
 
 	t.Run("error", func(t *testing.T) {
 		token := "5473903189:AAFnHnISQMP5UQQ5MEaoEWvxeiwNgz2CN2U"
 		initData := "asdfasdfasdfasdfasdf"
 		result, err := ValidateWebAppData(token, initData)
-		if err == nil {
-			t.Fail()
-		}
-		if result {
-			t.Fail()
-		}
+		assert.Error(t, err)
+		assert.False(t, result)
 	})
 }

@@ -3,6 +3,8 @@ package tgbotapi
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUserStringWith(t *testing.T) {
@@ -15,9 +17,7 @@ func TestUserStringWith(t *testing.T) {
 		IsBot:        false,
 	}
 
-	if user.String() != "Test Test" {
-		t.Fail()
-	}
+	assert.Equal(t, "Test Test", user.String())
 }
 
 func TestUserStringWithUserName(t *testing.T) {
@@ -29,252 +29,191 @@ func TestUserStringWithUserName(t *testing.T) {
 		LanguageCode: "en",
 	}
 
-	if user.String() != "@test" {
-		t.Fail()
-	}
+	assert.Equal(t, "@test", user.String())
 }
 
 func TestMessageTime(t *testing.T) {
 	message := Message{Date: 0}
 
-	date := time.Unix(0, 0)
-	if message.Time() != date {
-		t.Fail()
-	}
+	assert.Equal(t, time.Unix(0, 0), message.Time())
 }
 
 func TestMessageIsCommandWithCommand(t *testing.T) {
 	message := Message{Text: "/command"}
 	message.Entities = []MessageEntity{{Type: "bot_command", Offset: 0, Length: 8}}
 
-	if !message.IsCommand() {
-		t.Fail()
-	}
+	assert.True(t, message.IsCommand())
 }
 
 func TestIsCommandWithText(t *testing.T) {
 	message := Message{Text: "some text"}
 
-	if message.IsCommand() {
-		t.Fail()
-	}
+	assert.False(t, message.IsCommand())
 }
 
 func TestIsCommandWithEmptyText(t *testing.T) {
 	message := Message{Text: ""}
 
-	if message.IsCommand() {
-		t.Fail()
-	}
+	assert.False(t, message.IsCommand())
 }
 
 func TestCommandWithCommand(t *testing.T) {
 	message := Message{Text: "/command"}
 	message.Entities = []MessageEntity{{Type: "bot_command", Offset: 0, Length: 8}}
 
-	if message.Command() != "command" {
-		t.Fail()
-	}
+	assert.Equal(t, "command", message.Command())
 }
 
 func TestCommandWithEmptyText(t *testing.T) {
 	message := Message{Text: ""}
 
-	if message.Command() != "" {
-		t.Fail()
-	}
+	assert.Equal(t, "", message.Command())
 }
 
 func TestCommandWithNonCommand(t *testing.T) {
 	message := Message{Text: "test text"}
 
-	if message.Command() != "" {
-		t.Fail()
-	}
+	assert.Equal(t, "", message.Command())
 }
 
 func TestCommandWithBotName(t *testing.T) {
 	message := Message{Text: "/command@testbot"}
 	message.Entities = []MessageEntity{{Type: "bot_command", Offset: 0, Length: 16}}
 
-	if message.Command() != "command" {
-		t.Fail()
-	}
+	assert.Equal(t, "command", message.Command())
 }
 
 func TestCommandWithAtWithBotName(t *testing.T) {
 	message := Message{Text: "/command@testbot"}
 	message.Entities = []MessageEntity{{Type: "bot_command", Offset: 0, Length: 16}}
 
-	if message.CommandWithAt() != "command@testbot" {
-		t.Fail()
-	}
+	assert.Equal(t, "command@testbot", message.CommandWithAt())
 }
 
 func TestMessageCommandArgumentsWithArguments(t *testing.T) {
 	message := Message{Text: "/command with arguments"}
 	message.Entities = []MessageEntity{{Type: "bot_command", Offset: 0, Length: 8}}
-	if message.CommandArguments() != "with arguments" {
-		t.Fail()
-	}
+	assert.Equal(t, "with arguments", message.CommandArguments())
 }
 
 func TestMessageCommandArgumentsWithMalformedArguments(t *testing.T) {
 	message := Message{Text: "/command-without argument space"}
 	message.Entities = []MessageEntity{{Type: "bot_command", Offset: 0, Length: 8}}
-	if message.CommandArguments() != "without argument space" {
-		t.Fail()
-	}
+	assert.Equal(t, "without argument space", message.CommandArguments())
 }
 
 func TestMessageCommandArgumentsWithoutArguments(t *testing.T) {
 	message := Message{Text: "/command"}
-	if message.CommandArguments() != "" {
-		t.Fail()
-	}
+	assert.Equal(t, "", message.CommandArguments())
 }
 
 func TestMessageCommandArgumentsForNonCommand(t *testing.T) {
 	message := Message{Text: "test text"}
-	if message.CommandArguments() != "" {
-		t.Fail()
-	}
+	assert.Equal(t, "", message.CommandArguments())
 }
 
 func TestMessageEntityParseURLGood(t *testing.T) {
 	entity := MessageEntity{URL: "https://www.google.com"}
 
-	if _, err := entity.ParseURL(); err != nil {
-		t.Fail()
-	}
+	_, err := entity.ParseURL()
+	assert.NoError(t, err)
 }
 
 func TestMessageEntityParseURLBad(t *testing.T) {
 	entity := MessageEntity{URL: ""}
 
-	if _, err := entity.ParseURL(); err == nil {
-		t.Fail()
-	}
+	_, err := entity.ParseURL()
+	assert.Error(t, err)
 }
 
 func TestChatIsPrivate(t *testing.T) {
 	chat := Chat{ID: 10, Type: "private"}
 
-	if !chat.IsPrivate() {
-		t.Fail()
-	}
+	assert.True(t, chat.IsPrivate())
 }
 
 func TestChatIsGroup(t *testing.T) {
 	chat := Chat{ID: 10, Type: "group"}
 
-	if !chat.IsGroup() {
-		t.Fail()
-	}
+	assert.True(t, chat.IsGroup())
 }
 
 func TestChatIsChannel(t *testing.T) {
 	chat := Chat{ID: 10, Type: "channel"}
 
-	if !chat.IsChannel() {
-		t.Fail()
-	}
+	assert.True(t, chat.IsChannel())
 }
 
 func TestChatIsSuperGroup(t *testing.T) {
 	chat := Chat{ID: 10, Type: "supergroup"}
 
-	if !chat.IsSuperGroup() {
-		t.Fail()
-	}
+	assert.True(t, chat.IsSuperGroup())
 }
 
 func TestMessageEntityIsMention(t *testing.T) {
 	entity := MessageEntity{Type: "mention"}
 
-	if !entity.IsMention() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsMention())
 }
 
 func TestMessageEntityIsHashtag(t *testing.T) {
 	entity := MessageEntity{Type: "hashtag"}
 
-	if !entity.IsHashtag() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsHashtag())
 }
 
 func TestMessageEntityIsBotCommand(t *testing.T) {
 	entity := MessageEntity{Type: "bot_command"}
 
-	if !entity.IsCommand() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsCommand())
 }
 
 func TestMessageEntityIsUrl(t *testing.T) {
 	entity := MessageEntity{Type: "url"}
 
-	if !entity.IsURL() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsURL())
 }
 
 func TestMessageEntityIsEmail(t *testing.T) {
 	entity := MessageEntity{Type: "email"}
 
-	if !entity.IsEmail() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsEmail())
 }
 
 func TestMessageEntityIsBold(t *testing.T) {
 	entity := MessageEntity{Type: "bold"}
 
-	if !entity.IsBold() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsBold())
 }
 
 func TestMessageEntityIsItalic(t *testing.T) {
 	entity := MessageEntity{Type: "italic"}
 
-	if !entity.IsItalic() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsItalic())
 }
 
 func TestMessageEntityIsCode(t *testing.T) {
 	entity := MessageEntity{Type: "code"}
 
-	if !entity.IsCode() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsCode())
 }
 
 func TestMessageEntityIsPre(t *testing.T) {
 	entity := MessageEntity{Type: "pre"}
 
-	if !entity.IsPre() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsPre())
 }
 
 func TestMessageEntityIsTextLink(t *testing.T) {
 	entity := MessageEntity{Type: "text_link"}
 
-	if !entity.IsTextLink() {
-		t.Fail()
-	}
+	assert.True(t, entity.IsTextLink())
 }
 
 func TestFileLink(t *testing.T) {
 	file := File{FilePath: "test/test.txt"}
 
-	if file.Link("token") != "https://api.telegram.org/file/bottoken/test/test.txt" {
-		t.Fail()
-	}
+	assert.Equal(t, "https://api.telegram.org/file/bottoken/test/test.txt", file.Link("token"))
 }
 
 // Ensure all configs are sendable
