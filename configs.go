@@ -134,6 +134,10 @@ const (
 	// UpdateTypeSubscription is when a user payment subscription toward the
 	// bot was changed.
 	UpdateTypeSubscription = "subscription"
+
+	// UpdateTypeStoppedMessageGeneration is when a user asked the bot to stop
+	// the generation of a message.
+	UpdateTypeStoppedMessageGeneration = "stopped_message_generation"
 )
 
 // Library errors
@@ -341,27 +345,44 @@ func (chat *BaseChat) params() (Params, error) {
 	return params, err
 }
 
-// EphemeralSendParams holds the parameters that make an outgoing message
-// ephemeral, i.e. visible only to a single recipient and the bot. It is
-// embedded by the send configs whose methods support ephemeral messages.
+// EphemeralMessageParameters holds the parameters that make an outgoing
+// message ephemeral, i.e. visible only to a single recipient and the bot. It
+// is embedded (as EphemeralSendParams) by the send configs whose methods
+// support ephemeral messages and is sent on the wire as the JSON-serialized
+// ephemeral_message_parameters parameter.
 //
 // Leaving ReceiverUserID zero sends an ordinary, non-ephemeral message.
-type EphemeralSendParams struct {
+type EphemeralMessageParameters struct {
 	// ReceiverUserID is the unique identifier of the user who will receive
 	// the ephemeral message; for group and supergroup chats only. Delivery is
 	// not guaranteed, especially if the user is offline.
-	ReceiverUserID int64
+	ReceiverUserID int64 `json:"receiver_user_id"`
 	// CallbackQueryID is the identifier of the callback query which triggered
 	// the ephemeral message, if any.
-	CallbackQueryID string
+	//
+	// optional
+	CallbackQueryID string `json:"callback_query_id,omitempty"`
+	// ReplaceCallbackQueryMessage, if true, shows the ephemeral message in
+	// place of the original message. Must be false for callback queries from
+	// ephemeral messages, which must be edited with the editEphemeralMessage*
+	// methods.
+	//
+	// optional
+	ReplaceCallbackQueryMessage bool `json:"replace_callback_query_message,omitempty"`
 }
 
-// addTo writes the ephemeral parameters into params. It is a named method
-// rather than params() so that it does not collide with the params() promoted
-// from BaseChat in configs that embed both.
-func (e EphemeralSendParams) addTo(params Params) {
-	params.AddNonZero64("receiver_user_id", e.ReceiverUserID)
-	params.AddNonEmpty("callback_query_id", e.CallbackQueryID)
+// EphemeralSendParams is the embedded form of EphemeralMessageParameters kept
+// for source compatibility with Bot API 10.2 code.
+type EphemeralSendParams = EphemeralMessageParameters
+
+// addTo writes the ephemeral_message_parameters parameter into params. It is
+// a named method rather than params() so that it does not collide with the
+// params() promoted from BaseChat in configs that embed both.
+func (e EphemeralMessageParameters) addTo(params Params) error {
+	if e == (EphemeralMessageParameters{}) {
+		return nil
+	}
+	return params.AddAny("ephemeral_message_parameters", e)
 }
 
 // BaseFile is a base type for all file config types.
@@ -424,9 +445,10 @@ func (config MessageConfig) params() (Params, error) {
 	if err = params.AddAny("link_preview_options", config.LinkPreviewOptions); err != nil {
 		return params, err
 	}
-	err = params.AddAny("entities", config.Entities)
-
-	config.EphemeralSendParams.addTo(params)
+	if err = params.AddAny("entities", config.Entities); err != nil {
+		return params, err
+	}
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -519,9 +541,10 @@ func (config PhotoConfig) params() (Params, error) {
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
 	params.AddBool("has_spoiler", config.HasSpoiler)
-	err = params.AddAny("caption_entities", config.CaptionEntities)
-
-	config.EphemeralSendParams.addTo(params)
+	if err = params.AddAny("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -570,9 +593,10 @@ func (config AudioConfig) params() (Params, error) {
 	params.AddNonEmpty("title", config.Title)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
-	err = params.AddInterface("caption_entities", config.CaptionEntities)
-
-	config.EphemeralSendParams.addTo(params)
+	if err = params.AddInterface("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -610,12 +634,15 @@ type DocumentConfig struct {
 
 func (config DocumentConfig) params() (Params, error) {
 	params, err := config.BaseFile.params()
+	if err != nil {
+		return params, err
+	}
 
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	params.AddBool("disable_content_type_detection", config.DisableContentTypeDetection)
 
-	config.EphemeralSendParams.addTo(params)
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -656,9 +683,9 @@ func (config StickerConfig) params() (Params, error) {
 
 	params.AddNonEmpty("emoji", config.Emoji)
 
-	config.EphemeralSendParams.addTo(params)
+	err = config.EphemeralSendParams.addTo(params)
 
-	return params, nil
+	return params, err
 }
 
 func (config StickerConfig) method() string {
@@ -701,9 +728,10 @@ func (config VideoConfig) params() (Params, error) {
 	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
 	params.AddBool("supports_streaming", config.SupportsStreaming)
 	params.AddBool("has_spoiler", config.HasSpoiler)
-	err = params.AddAny("caption_entities", config.CaptionEntities)
-
-	config.EphemeralSendParams.addTo(params)
+	if err = params.AddAny("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -761,9 +789,10 @@ func (config LivePhotoConfig) params() (Params, error) {
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
 	params.AddBool("has_spoiler", config.HasSpoiler)
-	err = params.AddAny("caption_entities", config.CaptionEntities)
-
-	config.EphemeralSendParams.addTo(params)
+	if err = params.AddAny("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -812,9 +841,10 @@ func (config AnimationConfig) params() (Params, error) {
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
 	params.AddBool("has_spoiler", config.HasSpoiler)
-	err = params.AddAny("caption_entities", config.CaptionEntities)
-
-	config.EphemeralSendParams.addTo(params)
+	if err = params.AddAny("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -850,11 +880,14 @@ type VideoNoteConfig struct {
 
 func (config VideoNoteConfig) params() (Params, error) {
 	params, err := config.BaseChat.params()
+	if err != nil {
+		return params, err
+	}
 
 	params.AddNonZero("duration", config.Duration)
 	params.AddNonZero("length", config.Length)
 
-	config.EphemeralSendParams.addTo(params)
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -899,9 +932,10 @@ func (config VoiceConfig) params() (Params, error) {
 	params.AddNonZero("duration", config.Duration)
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
-	err = params.AddInterface("caption_entities", config.CaptionEntities)
-
-	config.EphemeralSendParams.addTo(params)
+	if err = params.AddInterface("caption_entities", config.CaptionEntities); err != nil {
+		return params, err
+	}
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -940,6 +974,9 @@ type LocationConfig struct {
 
 func (config LocationConfig) params() (Params, error) {
 	params, err := config.BaseChat.params()
+	if err != nil {
+		return params, err
+	}
 
 	params.AddNonZeroFloat("latitude", config.Latitude)
 	params.AddNonZeroFloat("longitude", config.Longitude)
@@ -948,7 +985,7 @@ func (config LocationConfig) params() (Params, error) {
 	params.AddNonZero("heading", config.Heading)
 	params.AddNonZero("proximity_alert_radius", config.ProximityAlertRadius)
 
-	config.EphemeralSendParams.addTo(params)
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -1014,6 +1051,9 @@ type VenueConfig struct {
 
 func (config VenueConfig) params() (Params, error) {
 	params, err := config.BaseChat.params()
+	if err != nil {
+		return params, err
+	}
 
 	params.AddNonZeroFloat("latitude", config.Latitude)
 	params.AddNonZeroFloat("longitude", config.Longitude)
@@ -1024,7 +1064,7 @@ func (config VenueConfig) params() (Params, error) {
 	params.AddNonEmpty("google_place_id", config.GooglePlaceID)
 	params.AddNonEmpty("google_place_type", config.GooglePlaceType)
 
-	config.EphemeralSendParams.addTo(params)
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -1045,6 +1085,9 @@ type ContactConfig struct {
 
 func (config ContactConfig) params() (Params, error) {
 	params, err := config.BaseChat.params()
+	if err != nil {
+		return params, err
+	}
 
 	params["phone_number"] = config.PhoneNumber
 	params["first_name"] = config.FirstName
@@ -1052,7 +1095,7 @@ func (config ContactConfig) params() (Params, error) {
 	params.AddNonEmpty("last_name", config.LastName)
 	params.AddNonEmpty("vcard", config.VCard)
 
-	config.EphemeralSendParams.addTo(params)
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -1393,8 +1436,11 @@ func (edit BaseEphemeralEdit) params() (Params, error) {
 type EditEphemeralMessageTextConfig struct {
 	BaseEphemeralEdit
 	// Text is the new text of the message, 1-4096 characters after entity
-	// parsing.
+	// parsing. Required if RichMessage is not set.
 	Text string
+	// RichMessage is the new rich content of the message. Required if Text is
+	// not set.
+	RichMessage *InputRichMessage
 	// ParseMode is the mode for parsing entities in the message text.
 	ParseMode string
 	// Entities is a list of special entities that appear in the message text,
@@ -1412,7 +1458,16 @@ func (config EditEphemeralMessageTextConfig) params() (Params, error) {
 		return params, err
 	}
 
-	params["text"] = config.Text
+	// text stays present when RichMessage is not set; an empty string is
+	// rejected by the API rather than silently dropped.
+	if config.RichMessage == nil {
+		params["text"] = config.Text
+	} else {
+		params.AddNonEmpty("text", config.Text)
+		if err = params.AddAny("rich_message", config.RichMessage); err != nil {
+			return params, err
+		}
+	}
 	params.AddNonEmpty("parse_mode", config.ParseMode)
 	if err = params.AddAny("entities", config.Entities); err != nil {
 		return params, err
@@ -1430,7 +1485,7 @@ func (config EditEphemeralMessageTextConfig) method() string {
 }
 
 // EditEphemeralMessageMediaConfig allows you to edit the media of an ephemeral
-// message. A new file can't be uploaded; use a previously uploaded file via
+// message. A new file can be uploaded, or use a previously uploaded file via
 // its file_id, or specify a URL.
 type EditEphemeralMessageMediaConfig struct {
 	BaseEphemeralEdit
@@ -1454,6 +1509,10 @@ func (config EditEphemeralMessageMediaConfig) params() (Params, error) {
 	return params, err
 }
 
+func (config EditEphemeralMessageMediaConfig) files() []RequestFile {
+	return prepareInputMediaFile(config.Media, 0)
+}
+
 func (config EditEphemeralMessageMediaConfig) method() string {
 	return "editEphemeralMessageMedia"
 }
@@ -1470,6 +1529,9 @@ type EditEphemeralMessageCaptionConfig struct {
 	// CaptionEntities is a list of special entities that appear in the
 	// caption, which can be specified instead of ParseMode.
 	CaptionEntities []MessageEntity
+	// ShowCaptionAboveMedia shows the caption above the message media.
+	// Supported only for animation, photo, and video messages.
+	ShowCaptionAboveMedia bool
 	// ReplyMarkup is the new inline keyboard for the message.
 	ReplyMarkup *InlineKeyboardMarkup
 }
@@ -1482,6 +1544,7 @@ func (config EditEphemeralMessageCaptionConfig) params() (Params, error) {
 
 	params.AddNonEmpty("caption", config.Caption)
 	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("show_caption_above_media", config.ShowCaptionAboveMedia)
 	if err = params.AddAny("caption_entities", config.CaptionEntities); err != nil {
 		return params, err
 	}
@@ -1853,6 +1916,7 @@ type PromoteChatMemberConfig struct {
 	CanManageTopics         bool
 	CanManageDirectMessages bool
 	CanManageTags           bool
+	CanSendWelcomeMessages  bool
 }
 
 func (config PromoteChatMemberConfig) method() string {
@@ -1884,6 +1948,7 @@ func (config PromoteChatMemberConfig) params() (Params, error) {
 	params.AddBool("can_manage_topics", config.CanManageTopics)
 	params.AddBool("can_manage_direct_messages", config.CanManageDirectMessages)
 	params.AddBool("can_manage_tags", config.CanManageTags)
+	params.AddBool("can_send_welcome_messages", config.CanSendWelcomeMessages)
 
 	return params, nil
 }
@@ -4823,6 +4888,14 @@ type SendMessageDraftConfig struct {
 	Text            string
 	ParseMode       string
 	Entities        []MessageEntity
+	// CanStop shows the user a button to stop further drafts. The bot
+	// receives an Update with StoppedMessageGeneration if the user presses
+	// the button.
+	CanStop bool
+	// KeepOnStop keeps the draft in the chat when the stop button is pressed.
+	// The draft still disappears after a short time or if the bot sends a
+	// message. To fully preserve the partial draft, send it as a new message.
+	KeepOnStop bool
 }
 
 func (SendMessageDraftConfig) method() string {
@@ -4838,6 +4911,8 @@ func (config SendMessageDraftConfig) params() (Params, error) {
 	// text is optional; an empty string is meaningful (placeholder).
 	params["text"] = config.Text
 	params.AddNonEmpty("parse_mode", config.ParseMode)
+	params.AddBool("can_stop", config.CanStop)
+	params.AddBool("keep_on_stop", config.KeepOnStop)
 	err := params.AddAny("entities", config.Entities)
 
 	return params, err
@@ -5432,6 +5507,7 @@ func prepareInputMediaForFiles(inputMedia []interface{}) []RequestFile {
 // returned, so it can be passed to BotAPI.Send.
 type SendRichMessageConfig struct {
 	BaseChat
+	EphemeralSendParams
 	// RichMessage is the message to be sent.
 	RichMessage *InputRichMessage
 	// SuggestedPostParameters contains the parameters of the suggested post
@@ -5448,7 +5524,10 @@ func (config SendRichMessageConfig) params() (Params, error) {
 	if err = params.AddAny("rich_message", config.RichMessage); err != nil {
 		return params, err
 	}
-	err = params.AddAny("suggested_post_parameters", config.SuggestedPostParameters)
+	if err = params.AddAny("suggested_post_parameters", config.SuggestedPostParameters); err != nil {
+		return params, err
+	}
+	err = config.EphemeralSendParams.addTo(params)
 
 	return params, err
 }
@@ -5473,6 +5552,14 @@ type SendRichMessageDraftConfig struct {
 	DraftID int
 	// RichMessage is the partial message to be streamed. Required.
 	RichMessage *InputRichMessage
+	// CanStop shows the user a button to stop further drafts. The bot
+	// receives an Update with StoppedMessageGeneration if the user presses
+	// the button.
+	CanStop bool
+	// KeepOnStop keeps the draft in the chat when the stop button is pressed.
+	// The draft still disappears after a short time or if the bot sends a
+	// message. To fully preserve the partial draft, send it as a new message.
+	KeepOnStop bool
 }
 
 func (config SendRichMessageDraftConfig) params() (Params, error) {
@@ -5481,6 +5568,8 @@ func (config SendRichMessageDraftConfig) params() (Params, error) {
 	params.AddNonZero64("chat_id", config.ChatID)
 	params.AddNonZero("message_thread_id", config.MessageThreadID)
 	params.AddNonZero("draft_id", config.DraftID)
+	params.AddBool("can_stop", config.CanStop)
+	params.AddBool("keep_on_stop", config.KeepOnStop)
 	err := params.AddAny("rich_message", config.RichMessage)
 
 	return params, err

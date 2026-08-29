@@ -151,3 +151,72 @@ func TestInputRichMessageParams(t *testing.T) {
 		t.Errorf("rich_message html = %q", got.HTML)
 	}
 }
+
+// TestRichBlockButtonsAndDocument verifies the Bot API 10.3 block types:
+// "buttons", "document", and "expandable_blockquote", plus the "button" span
+// and the is_compact table flag.
+func TestRichBlockButtonsAndDocument(t *testing.T) {
+	buttons := InputRichBlock{
+		Type:  RichBlockTypeButtons,
+		Align: "center",
+		Buttons: []RichMessageButton{{
+			Text:         RichText{IsPlain: true, PlainText: "Press"},
+			Style:        "primary",
+			CallbackData: "cb",
+		}},
+	}
+	out, err := json.Marshal(buttons)
+	if err != nil {
+		t.Fatalf("marshal buttons block: %v", err)
+	}
+	want := `{"type":"buttons","buttons":[{"text":"Press","style":"primary","callback_data":"cb"}],"align":"center"}`
+	if string(out) != want {
+		t.Errorf("buttons block encoding:\n  got:  %s\n  want: %s", out, want)
+	}
+
+	raw := `{"type":"document","document":{"file_id":"f1","file_unique_id":"u1"},` +
+		`"caption":{"text":"a file"}}`
+	var doc RichBlock
+	if err := json.Unmarshal([]byte(raw), &doc); err != nil {
+		t.Fatalf("unmarshal document block: %v", err)
+	}
+	if doc.Document == nil || doc.Document.FileID != "f1" {
+		t.Errorf("document not decoded: %+v", doc.Document)
+	}
+	if doc.Caption == nil || !doc.Caption.Text.IsPlain || doc.Caption.Text.PlainText != "a file" {
+		t.Errorf("document caption not routed: %+v", doc.Caption)
+	}
+
+	quote := InputRichBlock{
+		Type: RichBlockTypeExpandableBlockquote,
+		Text: &RichText{IsPlain: true, PlainText: "long quote"},
+	}
+	out, err = json.Marshal(quote)
+	if err != nil {
+		t.Fatalf("marshal expandable blockquote: %v", err)
+	}
+	if got, want := string(out), `{"type":"expandable_blockquote","text":"long quote"}`; got != want {
+		t.Errorf("expandable blockquote encoding:\n  got:  %s\n  want: %s", got, want)
+	}
+
+	table := InputRichBlock{Type: RichBlockTypeTable, IsCompact: true}
+	out, err = json.Marshal(table)
+	if err != nil {
+		t.Fatalf("marshal table: %v", err)
+	}
+	if got, want := string(out), `{"type":"table","is_compact":true}`; got != want {
+		t.Errorf("compact table encoding:\n  got:  %s\n  want: %s", got, want)
+	}
+
+	span := RichText{Type: RichTextTypeButton, Button: &RichMessageButton{
+		Text: RichText{IsPlain: true, PlainText: "Go"},
+		URL:  "https://example.com",
+	}}
+	out, err = json.Marshal(span)
+	if err != nil {
+		t.Fatalf("marshal button span: %v", err)
+	}
+	if got, want := string(out), `{"type":"button","button":{"text":"Go","url":"https://example.com"}}`; got != want {
+		t.Errorf("button span encoding:\n  got:  %s\n  want: %s", got, want)
+	}
+}

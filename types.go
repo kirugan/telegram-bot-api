@@ -186,6 +186,11 @@ type Update struct {
 	//
 	// optional
 	Subscription *BotSubscriptionUpdated `json:"subscription,omitempty"`
+	// StoppedMessageGeneration means a user asked the bot to stop the
+	// generation of a message.
+	//
+	// optional
+	StoppedMessageGeneration *MessageGenerationStopped `json:"stopped_message_generation,omitempty"`
 }
 
 // SentFrom returns the user who sent an update. Can be nil, if Telegram did not provide information
@@ -1103,6 +1108,11 @@ type Message struct {
 	//
 	// optional
 	CommunityChatRemoved *CommunityChatRemoved `json:"community_chat_removed,omitempty"`
+	// CommunityChatJoined is a service message about the chat being joined by
+	// a user from a community.
+	//
+	// optional
+	CommunityChatJoined *CommunityChatJoined `json:"community_chat_joined,omitempty"`
 	// ReplyToPollOptionID is the persistent identifier of the poll option
 	// that this message is a reply to.
 	//
@@ -2105,6 +2115,11 @@ type ReplyKeyboardMarkup struct {
 	//
 	// optional
 	Selective bool `json:"selective,omitempty"`
+	// ForceReply requests clients to show the reply interface to the user, as
+	// if they had manually selected the bot's message and tapped 'Reply'.
+	//
+	// optional
+	ForceReply bool `json:"force_reply,omitempty"`
 }
 
 // KeyboardButton represents one button of the reply keyboard. For simple text
@@ -2348,6 +2363,12 @@ type InlineKeyboardMarkup struct {
 	// InlineKeyboard array of button rows, each represented by an Array of
 	// InlineKeyboardButton objects
 	InlineKeyboard [][]InlineKeyboardButton `json:"inline_keyboard"`
+	// ForceReply requests clients to show the reply interface to the user, as
+	// if they had manually selected the bot's message and tapped 'Reply'. The
+	// value of the field can't be changed when the inline keyboard is edited.
+	//
+	// optional
+	ForceReply bool `json:"force_reply,omitempty"`
 }
 
 // InlineKeyboardButton represents one button of an inline keyboard. You must
@@ -2433,6 +2454,10 @@ type InlineKeyboardButton struct {
 	//
 	// optional
 	Pay bool `json:"pay,omitempty"`
+	// Disabled if set, then the button is disabled and does nothing.
+	//
+	// optional
+	Disabled *DisabledButton `json:"disabled,omitempty"`
 }
 
 // CopyTextButton represents an inline keyboard button that copies specified
@@ -2441,6 +2466,10 @@ type CopyTextButton struct {
 	// Text is the text to be copied to the clipboard; 1-256 characters.
 	Text string `json:"text"`
 }
+
+// DisabledButton represents a disabled button which does nothing. Currently
+// holds no information.
+type DisabledButton struct{}
 
 // SwitchInlineQueryChosenChat represents an inline button that switches the
 // current user to inline mode in a chosen chat, with an optional default
@@ -2667,6 +2696,7 @@ type ChatAdministratorRights struct {
 	CanManageTopics         bool `json:"can_manage_topics"`
 	CanManageDirectMessages bool `json:"can_manage_direct_messages"`
 	CanManageTags           bool `json:"can_manage_tags"`
+	CanSendWelcomeMessages  bool `json:"can_send_welcome_messages"`
 }
 
 // ChatMember contains information about one member of a chat.
@@ -2791,6 +2821,12 @@ type ChatMember struct {
 	//
 	// optional
 	CanManageTags bool `json:"can_manage_tags,omitempty"`
+	// CanSendWelcomeMessages administrators only.
+	// True, if the administrator can manage chat welcome messages or directly
+	// send them in the case of bots.
+	//
+	// optional
+	CanSendWelcomeMessages bool `json:"can_send_welcome_messages,omitempty"`
 	// Tag is the member's custom tag in the chat, if any.
 	//
 	// optional
@@ -3927,6 +3963,19 @@ type UniqueGiftInfo struct {
 	// Origin of the gift. One of "upgrade", "transfer", "resale",
 	// "gifted_upgrade", "offer".
 	Origin string `json:"origin"`
+	// Text of the message that was added to the gift.
+	//
+	// optional
+	Text string `json:"text,omitempty"`
+	// Entities are the special entities that appear in the text.
+	//
+	// optional
+	Entities []MessageEntity `json:"entities,omitempty"`
+	// IsPrivate is true, if the sender and gift text are shown only to the
+	// gift receiver; otherwise, everyone can see them.
+	//
+	// optional
+	IsPrivate bool `json:"is_private,omitempty"`
 	// LastResaleCurrency is the currency in which the gift was last resold
 	// on a resale market; for gifts with origin "resale" only.
 	//
@@ -3947,6 +3996,12 @@ type UniqueGiftInfo struct {
 	//
 	// optional
 	TransferStarCount int `json:"transfer_star_count,omitempty"`
+	// NextTransferDate is the point in time (Unix timestamp) when the gift
+	// can be transferred. If it is in the past, the gift can be transferred
+	// now.
+	//
+	// optional
+	NextTransferDate int `json:"next_transfer_date,omitempty"`
 }
 
 // Owned gift type constants.
@@ -7165,6 +7220,7 @@ const (
 	RichTextTypeHashtag                = "hashtag"
 	RichTextTypeCashtag                = "cashtag"
 	RichTextTypeBotCommand             = "bot_command"
+	RichTextTypeButton                 = "button"
 	RichTextTypeAnchor                 = "anchor"
 	RichTextTypeAnchorLink             = "anchor_link"
 	RichTextTypeReference              = "reference"
@@ -7277,6 +7333,10 @@ type RichText struct {
 	//
 	// optional
 	ReferenceName string `json:"reference_name,omitempty"`
+	// Button is the button of a "button" span.
+	//
+	// optional
+	Button *RichMessageButton `json:"button,omitempty"`
 
 	// Raw preserves the original JSON of the object form for forward
 	// compatibility with span types not yet modeled.
@@ -7343,14 +7403,17 @@ const (
 	RichBlockTypeAnchor                 = "anchor"
 	RichBlockTypeList                   = "list"
 	RichBlockTypeBlockquote             = "blockquote"
+	RichBlockTypeExpandableBlockquote   = "expandable_blockquote"
 	RichBlockTypePullquote              = "pullquote"
 	RichBlockTypeCollage                = "collage"
 	RichBlockTypeSlideshow              = "slideshow"
 	RichBlockTypeTable                  = "table"
 	RichBlockTypeDetails                = "details"
 	RichBlockTypeMap                    = "map"
+	RichBlockTypeButtons                = "buttons"
 	RichBlockTypeAnimation              = "animation"
 	RichBlockTypeAudio                  = "audio"
+	RichBlockTypeDocument               = "document"
 	RichBlockTypePhoto                  = "photo"
 	RichBlockTypeVideo                  = "video"
 	RichBlockTypeVoiceNote              = "voice_note"
@@ -7366,7 +7429,7 @@ type RichBlock struct {
 	// Type of the block, one of the RichBlockType* constants.
 	Type string `json:"type"`
 	// Text is the block text. Set for "paragraph", "heading", "pre",
-	// "footer", "pullquote", and "thinking" blocks.
+	// "footer", "expandable_blockquote", "pullquote", and "thinking" blocks.
 	//
 	// optional
 	Text *RichText `json:"text,omitempty"`
@@ -7396,7 +7459,8 @@ type RichBlock struct {
 	//
 	// optional
 	Blocks []RichBlock `json:"blocks,omitempty"`
-	// Credit is the credit of "blockquote" and "pullquote" blocks.
+	// Credit is the credit of "blockquote", "expandable_blockquote", and
+	// "pullquote" blocks.
 	//
 	// optional
 	Credit *RichText `json:"credit,omitempty"`
@@ -7412,6 +7476,19 @@ type RichBlock struct {
 	//
 	// optional
 	IsStriped bool `json:"is_striped,omitempty"`
+	// IsCompact is true if the cells of a "table" block have smaller indents.
+	//
+	// optional
+	IsCompact bool `json:"is_compact,omitempty"`
+	// Buttons are the buttons of a "buttons" block, shown in one row.
+	//
+	// optional
+	Buttons []RichMessageButton `json:"buttons,omitempty"`
+	// Align is the horizontal alignment of the buttons of a "buttons" block;
+	// one of "left", "center", or "right".
+	//
+	// optional
+	Align string `json:"align,omitempty"`
 	// Summary is the always-shown summary of a "details" block.
 	//
 	// optional
@@ -7449,6 +7526,10 @@ type RichBlock struct {
 	//
 	// optional
 	Audio *Audio `json:"audio,omitempty"`
+	// Document is the general file of a "document" block.
+	//
+	// optional
+	Document *Document `json:"document,omitempty"`
 	// Photo are the available sizes of a "photo" block.
 	//
 	// optional
@@ -7462,8 +7543,8 @@ type RichBlock struct {
 	// optional
 	VoiceNote *Voice `json:"voice_note,omitempty"`
 	// Caption is the caption of a media block ("collage", "slideshow", "map",
-	// "animation", "audio", "photo", "video", "voice_note"). It shares the
-	// "caption" wire field with TableCaption.
+	// "animation", "audio", "document", "photo", "video", "voice_note"). It
+	// shares the "caption" wire field with TableCaption.
 	//
 	// optional
 	Caption *RichBlockCaption `json:"-"`
@@ -7563,6 +7644,79 @@ type RichBlockTableCell struct {
 	Valign string `json:"valign"`
 }
 
+// RichMessageButton represents a button in a rich message. Use exactly one of
+// the fields other than Text and Style to specify the type of the button.
+type RichMessageButton struct {
+	// Text of the button. May contain only plain text, "custom_emoji" and
+	// "date_time" entities.
+	Text RichText `json:"text"`
+	// Style of the button. One of "danger", "success", "primary", or "link"
+	// (the button is shown as a regular link without borders). Apps may use
+	// theme-specific colors for the button background and text based on the
+	// style. The style "link" is allowed only for callback buttons.
+	//
+	// optional
+	Style string `json:"style,omitempty"`
+	// URL is an HTTP or tg:// URL to be opened when the button is pressed.
+	// Links tg://user?id=<user_id> can be used to mention a user by their
+	// identifier without using a username, if this is allowed by their
+	// privacy settings.
+	//
+	// optional
+	URL string `json:"url,omitempty"`
+	// CallbackData is the data to be sent in a callback query to the bot when
+	// the button is pressed, 1-64 bytes.
+	//
+	// optional
+	CallbackData string `json:"callback_data,omitempty"`
+	// WebApp is the description of the Web App that will be launched when the
+	// user presses the button. The Web App will be able to send an arbitrary
+	// message on behalf of the user using the method answerWebAppQuery.
+	// Available only in private chats between a user and the bot. Not
+	// supported for messages sent on behalf of a business account.
+	//
+	// optional
+	WebApp *WebAppInfo `json:"web_app,omitempty"`
+	// LoginURL is an HTTPS URL used to automatically authorize the user. Can
+	// be used as a replacement for the Telegram Login Widget. Not supported
+	// for ephemeral messages.
+	//
+	// optional
+	LoginURL *LoginURL `json:"login_url,omitempty"`
+	// SwitchInlineQuery, if set, prompts the user to select one of their
+	// chats, open that chat and insert the bot's username and the specified
+	// inline query in the input field. May be empty, in which case just the
+	// bot's username will be inserted. Not supported for messages sent in
+	// channel direct messages chats and on behalf of a business account.
+	//
+	// optional
+	SwitchInlineQuery *string `json:"switch_inline_query,omitempty"`
+	// SwitchInlineQueryCurrentChat, if set, inserts the bot's username and
+	// the specified inline query in the current chat's input field. May be
+	// empty, in which case only the bot's username will be inserted. Not
+	// supported in channels and for messages sent in channel direct messages
+	// chats and on behalf of a business account.
+	//
+	// optional
+	SwitchInlineQueryCurrentChat *string `json:"switch_inline_query_current_chat,omitempty"`
+	// SwitchInlineQueryChosenChat, if set, prompts the user to select one of
+	// their chats of the specified type, open that chat and insert the bot's
+	// username and the specified inline query in the input field. Not
+	// supported for messages sent in channel direct messages chats and on
+	// behalf of a business account.
+	//
+	// optional
+	SwitchInlineQueryChosenChat *SwitchInlineQueryChosenChat `json:"switch_inline_query_chosen_chat,omitempty"`
+	// CopyText is a button that copies the specified text to the clipboard.
+	//
+	// optional
+	CopyText *CopyTextButton `json:"copy_text,omitempty"`
+	// Disabled if set, then the button is disabled and does nothing.
+	//
+	// optional
+	Disabled *DisabledButton `json:"disabled,omitempty"`
+}
+
 // RichBlockListItem is an item of a rich formatted list.
 type RichBlockListItem struct {
 	// Label of the item.
@@ -7592,12 +7746,13 @@ type RichBlockListItem struct {
 // message, referenced from InputRichMessage.HTML or InputRichMessage.Markdown.
 type InputRichMessageMedia struct {
 	// ID is the unique identifier of the media used in a tg://photo?id=,
-	// tg://video?id=, or tg://audio?id= link. 1-64 characters; only A-Z, a-z,
-	// 0-9, _ and - are allowed.
+	// tg://video?id=, tg://document?id=, or tg://audio?id= link. 1-64
+	// characters; only A-Z, a-z, 0-9, _ and - are allowed.
 	ID string `json:"id"`
 	// Media to be sent; one of InputMediaAnimation, InputMediaAudio,
-	// InputMediaPhoto, InputMediaVideo, or InputMediaVoiceNote. Everything
-	// except the media itself and its properties is ignored.
+	// InputMediaDocument, InputMediaPhoto, InputMediaVideo, or
+	// InputMediaVoiceNote. Everything except the media itself and its
+	// properties is ignored.
 	Media interface{} `json:"media"`
 }
 
@@ -7636,7 +7791,7 @@ type InputRichBlock struct {
 	// Type of the block, one of the RichBlockType* constants.
 	Type string `json:"type"`
 	// Text is the block text. Set for "paragraph", "heading", "pre",
-	// "footer", "pullquote", and "thinking" blocks.
+	// "footer", "expandable_blockquote", "pullquote", and "thinking" blocks.
 	//
 	// optional
 	Text *RichText `json:"text,omitempty"`
@@ -7666,7 +7821,8 @@ type InputRichBlock struct {
 	//
 	// optional
 	Blocks []InputRichBlock `json:"blocks,omitempty"`
-	// Credit is the credit of "blockquote" and "pullquote" blocks.
+	// Credit is the credit of "blockquote", "expandable_blockquote", and
+	// "pullquote" blocks.
 	//
 	// optional
 	Credit *RichText `json:"credit,omitempty"`
@@ -7682,6 +7838,20 @@ type InputRichBlock struct {
 	//
 	// optional
 	IsStriped bool `json:"is_striped,omitempty"`
+	// IsCompact, if true, gives the cells of a "table" block smaller indents.
+	//
+	// optional
+	IsCompact bool `json:"is_compact,omitempty"`
+	// Buttons is the list of 1-8 buttons of a "buttons" block, shown in one
+	// row.
+	//
+	// optional
+	Buttons []RichMessageButton `json:"buttons,omitempty"`
+	// Align is the horizontal alignment of the buttons of a "buttons" block;
+	// one of "left", "center", or "right".
+	//
+	// optional
+	Align string `json:"align,omitempty"`
 	// Summary is the always-shown summary of a "details" block.
 	//
 	// optional
@@ -7716,6 +7886,11 @@ type InputRichBlock struct {
 	//
 	// optional
 	Audio *InputMediaAudio `json:"audio,omitempty"`
+	// Document is the general file of a "document" block. Its caption is
+	// ignored.
+	//
+	// optional
+	Document *InputMediaDocument `json:"document,omitempty"`
 	// Photo is the photo of a "photo" block. Its caption is ignored.
 	//
 	// optional
@@ -7730,8 +7905,8 @@ type InputRichBlock struct {
 	// optional
 	VoiceNote *InputMediaVoiceNote `json:"voice_note,omitempty"`
 	// Caption is the caption of a media block ("collage", "slideshow", "map",
-	// "animation", "audio", "photo", "video", "voice_note"). It shares the
-	// "caption" wire field with TableCaption.
+	// "animation", "audio", "document", "photo", "video", "voice_note"). It
+	// shares the "caption" wire field with TableCaption.
 	//
 	// optional
 	Caption *RichBlockCaption `json:"-"`
@@ -7814,6 +7989,28 @@ type CommunityChatAdded struct {
 // CommunityChatRemoved describes a service message about a chat being removed
 // from a community. Currently holds no information.
 type CommunityChatRemoved struct{}
+
+// CommunityChatJoined describes a service message about a chat being joined by
+// a user from a community.
+type CommunityChatJoined struct {
+	// Community is the community from which the chat was joined.
+	Community Community `json:"community"`
+}
+
+// MessageGenerationStopped describes an update about a user stopping message
+// generation.
+type MessageGenerationStopped struct {
+	// Chat in which the message is generated.
+	Chat Chat `json:"chat"`
+	// MessageThreadID is the unique identifier of the message thread in which
+	// the message is generated.
+	//
+	// optional
+	MessageThreadID int `json:"message_thread_id,omitempty"`
+	// DraftID is the unique identifier of the message draft which was
+	// stopped.
+	DraftID int64 `json:"draft_id"`
+}
 
 // BotSubscriptionUpdated contains information about changes to a user payment
 // subscription toward the current bot.

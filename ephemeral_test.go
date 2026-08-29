@@ -142,25 +142,21 @@ func TestEphemeralSendParams(t *testing.T) {
 	if err != nil {
 		t.Fatalf("plain params: %v", err)
 	}
-	if _, ok := params["receiver_user_id"]; ok {
-		t.Error("receiver_user_id emitted for a non-ephemeral message")
-	}
-	if _, ok := params["callback_query_id"]; ok {
-		t.Error("callback_query_id emitted for a non-ephemeral message")
+	if _, ok := params["ephemeral_message_parameters"]; ok {
+		t.Error("ephemeral_message_parameters emitted for a non-ephemeral message")
 	}
 
 	ephemeral := NewMessage(12345, "hello")
 	ephemeral.ReceiverUserID = 777
 	ephemeral.CallbackQueryID = "cbq"
+	ephemeral.ReplaceCallbackQueryMessage = true
 	params, err = ephemeral.params()
 	if err != nil {
 		t.Fatalf("ephemeral params: %v", err)
 	}
-	if params["receiver_user_id"] != "777" {
-		t.Errorf("receiver_user_id = %q, want 777", params["receiver_user_id"])
-	}
-	if params["callback_query_id"] != "cbq" {
-		t.Errorf("callback_query_id = %q, want cbq", params["callback_query_id"])
+	want := `{"receiver_user_id":777,"callback_query_id":"cbq","replace_callback_query_message":true}`
+	if params["ephemeral_message_parameters"] != want {
+		t.Errorf("ephemeral_message_parameters = %q, want %q", params["ephemeral_message_parameters"], want)
 	}
 }
 
